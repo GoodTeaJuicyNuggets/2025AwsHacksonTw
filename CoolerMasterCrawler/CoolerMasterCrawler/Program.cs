@@ -6,6 +6,7 @@ using CsvHelper;
 using OpenQA.Selenium.Interactions;
 using CsvHelper.Configuration;
 using System.Text.Json;
+using System.Net;
 
 class Product
 {
@@ -69,54 +70,58 @@ class Program
 
                 var productsOnPage = driver.FindElements(By.XPath("//li[contains(@class, 'ais-Hits-item')]"));
 
-                foreach (var productElement in productsOnPage)
+                for (int i = 0; i < productsOnPage.Count; i++)
                 {
-                    string name = "", productPageUrl = "", description = "";
-                    List<string> imageUrls = new();
-
-                    name = productElement.FindElement(By.XPath(".//h3")).Text.Trim();
-                    productPageUrl = productElement.FindElement(By.XPath(".//a")).GetAttribute("href");
-                    string imageUrl = productElement.FindElement(By.XPath(".//img")).GetAttribute("src");
-                    if (!imageUrl.StartsWith("http")) imageUrl = "https://www.coolermaster.com" + imageUrl;
-                    imageUrls.Add(imageUrl);
-
                     try
                     {
-                        // 重新獲取圖像元素並模擬懸停以加載不同的圖片
+                        var productElement = driver.FindElements(By.XPath("//li[contains(@class, 'ais-Hits-item')]"))[i];
+
+                        string name = "", productPageUrl = "", description = "";
+                        List<string> imageUrls = new();
+
+                        name = productElement.FindElement(By.XPath(".//h3")).Text.Trim();
+                        productPageUrl = productElement.FindElement(By.XPath(".//a")).GetAttribute("href");
+
+                        string imageUrl = productElement.FindElement(By.XPath(".//img")).GetAttribute("src");
+                        if (!imageUrl.StartsWith("http")) imageUrl = "https://www.coolermaster.com" + imageUrl;
+                        imageUrls.Add(imageUrl);
+
                         var imageElement = productElement.FindElement(By.XPath(".//img"));
                         var actions = new Actions(driver);
-                        actions.MoveToElement(imageElement).Perform();  // 模擬懸停動作
-
-                        // 等待圖片改變或新圖片加載
+                        actions.MoveToElement(imageElement).Perform();
                         wait.Until(d => d.FindElement(By.XPath(".//img")).GetAttribute("src") != imageUrl);
+
                         imageElement = productElement.FindElement(By.XPath(".//img"));
                         var newImageUrl = imageElement.GetAttribute("src");
                         if (!imageUrls.Contains(newImageUrl) && newImageUrl.StartsWith("http"))
                         {
                             imageUrls.Add(newImageUrl);
                         }
+
+                        try
+                        {
+                            description = productElement.FindElement(By.XPath(".//p[contains(@class, 'body-s')]")).Text.Trim();
+                        }
+                        catch { }
+
+                        allProducts.Add(new Product
+                        {
+                            Name = name,
+                            ImageUrls = imageUrls,
+                            ProductPageUrl = productPageUrl,
+                            Description = description,
+                            ProductCategory = category
+                        });
+
+                        Console.WriteLine($"✅ {name} [{category}]");
                     }
-                    catch { }
-
-                    try
+                    catch (StaleElementReferenceException)
                     {
-                        description = productElement.FindElement(By.XPath(".//p[contains(@class, 'body-s')]")).Text.Trim();
+                        Console.WriteLine("⚠️ 發生 stale element，略過此產品");
+                        continue;
                     }
-                    catch { }
-
-                    allProducts.Add(new Product
-                    {
-                        Name = name,
-                        ImageUrls = imageUrls,
-                        ProductPageUrl = productPageUrl,
-                        Description = description,
-                        ProductCategory = category
-                    });
-
-                    Console.WriteLine($"✅ {name} [{category}]");
                 }
 
-                // 下一頁邏輯
                 try
                 {
                     var nextPageLi = driver.FindElement(By.XPath("//li[contains(@class, 'ais-Pagination-item--nextPage')]"));
@@ -140,7 +145,6 @@ class Program
             }
         }
 
-        // 📝 輸出單一 CSV
         var csvFileName = "coolermaster_products.csv";
         using (var writer = new StreamWriter(csvFileName))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -156,7 +160,37 @@ class Program
             }
         }
 
-        Console.WriteLine($"\n✅ 完成，共 {allProducts.Count} 筆產品資訊，已寫入：{csvFileName}");
+        Console.WriteLine($"\n📥 開始分類下載所有產品圖片...");
+
+        var baseImageFolder = Path.Combine(Directory.GetCurrentDirectory(), "images");
+        Directory.CreateDirectory(baseImageFolder);
+
+        foreach (var product in allProducts)
+        {
+            string categoryFolder = Path.Combine(baseImageFolder, product.ProductCategory);
+            Directory.CreateDirectory(categoryFolder);
+
+            for (int i = 0; i < product.ImageUrls.Count; i++)
+            {
+                string sanitizedName = string.Join("_", product.Name.Split(Path.GetInvalidFileNameChars()));
+                string filename = $"{sanitizedName}_{i + 1}.jpg";
+                string filePath = Path.Combine(categoryFolder, filename);
+
+                try
+                {
+                    using var client = new HttpClient();
+                    var imageData = await client.GetByteArrayAsync(product.ImageUrls[i]);
+                    await File.WriteAllBytesAsync(filePath, imageData);
+                    Console.WriteLine($"🖼️ 已下載：{filePath}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ 下載失敗：{filename}，原因：{ex.Message}");
+                }
+            }
+        }
+
+        Console.WriteLine($"\n✅ 完成，共 {allProducts.Count} 筆產品資訊，CSV：{csvFileName}");
     }
 
     static void HandlePopups(IWebDriver driver)
