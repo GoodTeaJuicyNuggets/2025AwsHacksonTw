@@ -1,26 +1,60 @@
-﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
-using System.Globalization;
-using CsvHelper;
-using OpenQA.Selenium.Interactions;
-using CsvHelper.Configuration;
-using System.Text.Json;
+﻿using System.Globalization;
 using System.Net;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 
-class Product
+public class Product
 {
+    public int Id { get; set; } // Primary Key
     public string ProductCategory { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string ProductPageUrl { get; set; }
-    public List<string> ImageUrls { get; set; }
+    public List<string> ImageUrls { get; set; } // Stored as List<string>
+    public List<string> LocalImagePaths { get; set; } // Relative paths to downloaded images
+}
+
+public class ProductDbContext : DbContext
+{
+    public DbSet<Product> Products { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        var dbPath = Path.Combine(AppContext.BaseDirectory, "sqlite", "products.db");
+        Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
+        optionsBuilder.UseSqlite($"Data Source={dbPath}");
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Configure ValueConverter for ImageUrls and LocalImagePaths
+        var listToJsonConverter = new ValueConverter<List<string>, string>(
+            v => JsonSerializer.Serialize(v, new JsonSerializerOptions { WriteIndented = false }),
+            v => JsonSerializer.Deserialize<List<string>>(v, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>()
+        );
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.ImageUrls)
+            .HasConversion(listToJsonConverter);
+
+        modelBuilder.Entity<Product>()
+            .Property(p => p.LocalImagePaths)
+            .HasConversion(listToJsonConverter);
+    }
 }
 
 class Program
 {
     static async Task Main(string[] args)
     {
+        // Initialize SQLite native support
+        SQLitePCL.Batteries.Init();
+
         var allProducts = new List<Product>();
         var baseUrl = "https://www.coolermaster.com/en-global/catalog/";
 
@@ -104,10 +138,14 @@ class Program
                         }
                         catch { }
 
+                        // Download images and generate local paths
+                        var localImagePaths = await DownloadImages(imageUrls, category, name);
+
                         allProducts.Add(new Product
                         {
                             Name = name,
                             ImageUrls = imageUrls,
+                            LocalImagePaths = localImagePaths,
                             ProductPageUrl = productPageUrl,
                             Description = description,
                             ProductCategory = category
@@ -145,52 +183,46 @@ class Program
             }
         }
 
-        var csvFileName = "coolermaster_products.csv";
-        using (var writer = new StreamWriter(csvFileName))
-        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+        // Save to SQLite database
+        using (var dbContext = new ProductDbContext())
         {
-            csv.Context.RegisterClassMap<ProductMap>();
-            csv.WriteHeader<Product>();
-            csv.NextRecord();
+            dbContext.Database.EnsureCreated();
+            dbContext.Products.AddRange(allProducts);
+            await dbContext.SaveChangesAsync();
+        }
 
-            foreach (var p in allProducts)
+        Console.WriteLine($"\n✅ 完成，共 {allProducts.Count} 筆產品資訊，已儲存至 SQLite 資料庫");
+    }
+
+    static async Task<List<string>> DownloadImages(List<string> imageUrls, string category, string productName)
+    {
+        var baseFolder = Path.Combine(AppContext.BaseDirectory, "files", category);
+        Directory.CreateDirectory(baseFolder);
+
+        var localPaths = new List<string>();
+
+        for (int i = 0; i < imageUrls.Count; i++)
+        {
+            string sanitizedName = string.Join("_", productName.Split(Path.GetInvalidFileNameChars()));
+            string fileName = $"{sanitizedName}_{i + 1}.jpg";
+            string filePath = Path.Combine(baseFolder, fileName);
+            string relativePath = Path.Combine("files", category, fileName);
+
+            try
             {
-                csv.WriteRecord(p);
-                csv.NextRecord();
+                using var client = new HttpClient();
+                var imageData = await client.GetByteArrayAsync(imageUrls[i]);
+                await File.WriteAllBytesAsync(filePath, imageData);
+                localPaths.Add(relativePath);
+                Console.WriteLine($"🖼️ 已下載：{filePath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ 下載失敗：{fileName}，原因：{ex.Message}");
             }
         }
 
-        Console.WriteLine($"\n📥 開始分類下載所有產品圖片...");
-
-        var baseImageFolder = Path.Combine(Directory.GetCurrentDirectory(), "images");
-        Directory.CreateDirectory(baseImageFolder);
-
-        foreach (var product in allProducts)
-        {
-            string categoryFolder = Path.Combine(baseImageFolder, product.ProductCategory);
-            Directory.CreateDirectory(categoryFolder);
-
-            for (int i = 0; i < product.ImageUrls.Count; i++)
-            {
-                string sanitizedName = string.Join("_", product.Name.Split(Path.GetInvalidFileNameChars()));
-                string filename = $"{sanitizedName}_{i + 1}.jpg";
-                string filePath = Path.Combine(categoryFolder, filename);
-
-                try
-                {
-                    using var client = new HttpClient();
-                    var imageData = await client.GetByteArrayAsync(product.ImageUrls[i]);
-                    await File.WriteAllBytesAsync(filePath, imageData);
-                    Console.WriteLine($"🖼️ 已下載：{filePath}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"❌ 下載失敗：{filename}，原因：{ex.Message}");
-                }
-            }
-        }
-
-        Console.WriteLine($"\n✅ 完成，共 {allProducts.Count} 筆產品資訊，CSV：{csvFileName}");
+        return localPaths;
     }
 
     static void HandlePopups(IWebDriver driver)
@@ -225,19 +257,6 @@ class Program
         catch (Exception ex)
         {
             Console.WriteLine("⚠️ Yes, continue here 點擊失敗：" + ex.Message);
-        }
-    }
-
-    public class ProductMap : ClassMap<Product>
-    {
-        public ProductMap()
-        {
-            Map(p => p.ProductCategory);
-            Map(p => p.Name);
-            Map(p => p.Description);
-            Map(p => p.ProductPageUrl);
-            Map(p => p.ImageUrls)
-                .Convert(args => JsonSerializer.Serialize(args.Value.ImageUrls ?? new List<string>()));
         }
     }
 }
