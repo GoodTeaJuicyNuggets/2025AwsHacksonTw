@@ -74,27 +74,41 @@ public class FileService
             string filePath = Path.Combine(baseFolder, fileName);
             string relativePath = Path.Combine("files", category, fileName);
 
-            try
+            var productImage = new ProductImage
             {
-                using var client = new HttpClient();
-                var imageData = await client.GetByteArrayAsync(imageUrls[i]);
-                await File.WriteAllBytesAsync(filePath, imageData);
-                result.Add(new ProductImage()
+                ImageUrl = relativePath,
+                ProductId = productId,
+                ProductCategory = category,
+                ImageSource = ImageSource.Official
+            };
+
+            if (File.Exists(filePath))
+            {
+                Console.WriteLine($"📁 檔案已存在，略過下載：{filePath}");
+            }
+            else
+            {
+                try
                 {
-                    ImageUrl = relativePath,
-                    ProductId = productId
-                });
-                Console.WriteLine($"🖼️ 已下載：{filePath}");
+                    using var client = new HttpClient();
+                    var imageData = await client.GetByteArrayAsync(imageUrls[i]);
+                    await File.WriteAllBytesAsync(filePath, imageData);
+                    Console.WriteLine($"🖼️ 已下載：{filePath}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ 下載失敗：{fileName}，原因：{ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ 下載失敗：{fileName}，原因：{ex.Message}");
-            }
+
+            result.Add(productImage);
         }
 
         return result;
     }
 }
+
+
 
 // Crawler/CrawlerService.cs
 public class CrawlerService
@@ -181,15 +195,18 @@ public class CrawlerService
 
         try
         {
+            productElement = _driver.FindElements(By.XPath("//li[contains(@class, 'ais-Hits-item')]"))[index];
             string imageUrl = productElement.FindElement(By.XPath(".//img")).GetAttribute("src");
             if (!imageUrl.StartsWith("http")) imageUrl = "https://www.coolermaster.com" + imageUrl;
             imageUrls.Add(imageUrl);
 
+            productElement = _driver.FindElements(By.XPath("//li[contains(@class, 'ais-Hits-item')]"))[index];
             var imageElement = productElement.FindElement(By.XPath(".//img"));
             var actions = new Actions(_driver);
             actions.MoveToElement(imageElement).Perform();
             _wait.Until(d => d.FindElement(By.XPath(".//img")).GetAttribute("src") != imageUrl);
 
+            productElement = _driver.FindElements(By.XPath("//li[contains(@class, 'ais-Hits-item')]"))[index];
             imageElement = productElement.FindElement(By.XPath(".//img"));
             var newImageUrl = imageElement.GetAttribute("src");
             if (!imageUrls.Contains(newImageUrl) && newImageUrl.StartsWith("http"))
@@ -273,29 +290,64 @@ public class CrawlerService
 
 
 // DB/Models.cs
+public enum ImageSource
+{
+    Upload,
+    Official,
+    Generated_Draft,
+    Generated_Production
+}
+
 public class Product
 {
-    public int Id { get; set; } // Primary Key
+    public int Id { get; set; }
     public string ProductCategory { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string ProductPageUrl { get; set; }
-    public List<string> ImageUrls { get; set; } // Stored as List<string>
-    public List<ProductImage> ProductImages { get; set; } // Navigation property
+    public List<string> ImageUrls { get; set; }
+    public List<ProductImage> ProductImages { get; set; }
 }
 
 public class ProductImage
 {
-    public int ImageId { get; set; } // Primary Key
-    public string ImageUrl { get; set; } // Relative path to downloaded image
-    public int ProductId { get; set; } // Foreign Key
-    public Product Product { get; set; } // Navigation property
+    public int ImageId { get; set; }
+    public string ImageUrl { get; set; }
+    public int ProductId { get; set; }
+    public string ProductCategory { get; set; }
+    public ImageSource ImageSource { get; set; }
+
+    public Product Product { get; set; }
+    public List<ImageSpec> Specs { get; set; }
+    public List<ImagePrompt> Prompts { get; set; }
+}
+
+public class ImageSpec
+{
+    public int Id { get; set; }
+    public int ImageId { get; set; }
+    public string SpecKey { get; set; }
+    public string SpecValue { get; set; }
+
+    public ProductImage ProductImage { get; set; }
+}
+
+public class ImagePrompt
+{
+    public int Id { get; set; }
+    public int ImageId { get; set; }
+    public string Prompt { get; set; }
+    public DateTime CreateTime { get; set; }
+
+    public ProductImage ProductImage { get; set; }
 }
 
 public class ProductDbContext : DbContext
 {
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
+    public DbSet<ImageSpec> ImageSpecs { get; set; }
+    public DbSet<ImagePrompt> ImagePrompts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -313,6 +365,24 @@ public class ProductDbContext : DbContext
 
         modelBuilder.Entity<ProductImage>()
             .HasKey(pi => pi.ImageId);
+
+        modelBuilder.Entity<ProductImage>()
+            .Property(p => p.ImageSource)
+            .HasConversion<string>(); // enum 儲存為字串
+
+        modelBuilder.Entity<ImageSpec>()
+            .HasKey(s => s.Id);
+        modelBuilder.Entity<ImageSpec>()
+            .HasOne(s => s.ProductImage)
+            .WithMany(pi => pi.Specs)
+            .HasForeignKey(s => s.ImageId);
+
+        modelBuilder.Entity<ImagePrompt>()
+            .HasKey(p => p.Id);
+        modelBuilder.Entity<ImagePrompt>()
+            .HasOne(p => p.ProductImage)
+            .WithMany(pi => pi.Prompts)
+            .HasForeignKey(p => p.ImageId);
 
         var listToJsonConverter = new ValueConverter<List<string>, string>(
             v => JsonSerializer.Serialize(v, new JsonSerializerOptions { WriteIndented = false }),
