@@ -18,7 +18,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult Selector()
         {
             return View();
         }
