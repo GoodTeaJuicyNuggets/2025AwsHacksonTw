@@ -1,7 +1,14 @@
+using CoolerMaster.ImageAi.Web.Configurations;
+using CoolerMaster.ImageAi.Web.Infrastructure;
+using CoolerMaster.ImageAi.Web.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
+var awsS3Config = config.GetSection("AwsS3Config").Get<AwsS3Config>() ?? throw new ArgumentOutOfRangeException("AwsS3Config is missing.");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<IAwsS3Client>(_ => new AwsS3Client(awsS3Config));
 
 var app = builder.Build();
 

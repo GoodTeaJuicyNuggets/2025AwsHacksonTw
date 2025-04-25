@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="3.7.416.15" />
+  </ItemGroup>
+
 </Project>
