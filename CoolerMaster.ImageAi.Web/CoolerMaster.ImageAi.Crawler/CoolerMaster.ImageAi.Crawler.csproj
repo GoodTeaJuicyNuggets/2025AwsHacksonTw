@@ -19,4 +19,8 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CoolerMaster.ImageAi.Shared\CoolerMaster.ImageAi.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
