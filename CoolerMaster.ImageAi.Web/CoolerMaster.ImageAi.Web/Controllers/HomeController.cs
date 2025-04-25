@@ -22,16 +22,32 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         {
             return View();
         }
-        public async Task<IActionResult> GenerateImage(string taskType, string prompt, ImageGenerationViewModel imageGeneration)
+        public async Task<IActionResult> GenerateImage(string taskType, string prompt, string imageData, ImageGenerationViewModel imageGeneration)
         {
-            var folderName = "generated-images";
-            var fileName = $"{taskType}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}"; 
-            var contentType = "image/jpg";
+            string contentType = null;
+            string folderName = "generated-images";
+            string fileName = $"{taskType}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}";
 
-            var imagePath = Path.Combine(_env.WebRootPath, "pic", "image_01.jpg");
-            var fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (!string.IsNullOrEmpty(imageData))
+            {
+                byte[] imageBytes = Convert.FromBase64String(imageData.Substring(imageData.IndexOf(',') + 1));
+                Stream imageStream = new MemoryStream(imageBytes);
 
-            bool uploadSuccess = await _awsS3Client.UploadImageAsync(fileStream, folderName, fileName, contentType);
+                int commaIndex = imageData.IndexOf(',');
+                if (commaIndex != -1 && imageData.StartsWith("data:"))
+                {
+                    string metadata = imageData.Substring(5, commaIndex - 5); 
+                    string[] metadataParts = metadata.Split(';');
+                    if (metadataParts.Length > 0 && metadataParts[0].Contains('/'))
+                    {
+                        contentType = metadataParts[0];
+                    }
+                }
+
+                bool uploadSuccess = await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? "");
+            }
+
+            
 
             return View("Index");
         }

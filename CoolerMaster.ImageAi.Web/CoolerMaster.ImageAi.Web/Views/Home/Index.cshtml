@@ -12,7 +12,7 @@
 <body>
     <div class="container py-5">
         <h2 class="text-center mb-4">CoolerMaster Imager</h2>
-        @using (Html.BeginForm("GenerateImage", "Home", FormMethod.Post))
+        @using (Html.BeginForm("GenerateImage", "Home", FormMethod.Post, new { id = "CoolerMasterAiAgentForm" }))
         {
             <div class="row g-4 equal-height">
                 <div class="col-md-4 equal-height-child">
@@ -52,6 +52,7 @@
                         <input type="text" class="form-control" id="txtPrompt" name="Prompt" placeholder="請輸入您的指令...">
                         <button type="submit" class="btn btn-outline-success" id="btnGenImage">&#8594;</button>
                     </div>
+                    <input type="hidden" name="imageData" id="hidImageData" value="" />
                 </div>
             </div>
         }
@@ -59,3 +60,22 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/index.js"></script>
 </body>
+
+<script>
+    document.getElementById('CoolerMasterAiAgentForm').addEventListener('submit', function () {
+        const previewImage = document.getElementById('previewImage');
+        const imageDataInput = document.getElementById('hidImageData');
+
+        if (previewImage.src && previewImage.src !== window.location.href) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = previewImage.naturalWidth;
+            canvas.height = previewImage.naturalHeight;
+            ctx.drawImage(previewImage, 0, 0);
+            imageDataInput.value = canvas.toDataURL();
+        } else {
+            imageDataInput.value = ""; 
+        }
+    });
+
+</script>
