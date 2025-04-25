@@ -17,6 +17,10 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         {
             return View();
         }
+        public IActionResult GenerateImage(string taskType, string prompt, ImageGenerationViewModel imageGeneration)
+        {
+            return View("Index");
+        }
 
         public IActionResult Selector()
         {
