@@ -15,8 +15,9 @@ namespace CoolerMaster.ImageAi.Crawler.Services
     {
         private readonly IWebDriver _driver;
         private readonly WebDriverWait _wait;
+        private readonly CrawlerSharedService _crawlerSharedService;
 
-        public CrawlerService()
+        public CrawlerService(CrawlerSharedService crawlerSharedService)
         {
             var options = new ChromeOptions();
             options.AddArgument("--disable-gpu");
@@ -24,6 +25,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
 
             _driver = new ChromeDriver(options);
             _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(30));
+            _crawlerSharedService = crawlerSharedService;
         }
 
         public List<Product> ScrapeProducts(string baseUrl, List<string> categories)
@@ -36,7 +38,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
                 Console.WriteLine($"\n=== 🚀 開始處理分類：{category} ===");
 
                 _driver.Navigate().GoToUrl(catalogUrl);
-                HandlePopups();
+                _crawlerSharedService.HandlePopups(_driver);
 
                 int page = 1;
 
@@ -150,41 +152,6 @@ namespace CoolerMaster.ImageAi.Crawler.Services
             }
 
             return false;
-        }
-
-        private void HandlePopups()
-        {
-            IJavaScriptExecutor js = (IJavaScriptExecutor)_driver;
-
-            try
-            {
-                var allowAllBtn = _driver.FindElements(By.XPath("//button[contains(text(),'Allow all')]"));
-                if (allowAllBtn.Count > 0)
-                {
-                    js.ExecuteScript("arguments[0].click();", allowAllBtn[0]);
-                    Console.WriteLine("👉 點擊了『Allow all』");
-                    Thread.Sleep(1000);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("⚠️ Allow all 點擊失敗：" + ex.Message);
-            }
-
-            try
-            {
-                var continueBtns = _driver.FindElements(By.XPath("//button[.//span[text()='Yes, continue here']]"));
-                if (continueBtns.Count > 0)
-                {
-                    js.ExecuteScript("arguments[0].click();", continueBtns[0]);
-                    Console.WriteLine("👉 點擊了『Yes, continue here』");
-                    Thread.Sleep(1000);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("⚠️ Yes, continue here 點擊失敗：" + ex.Message);
-            }
         }
     }
 
