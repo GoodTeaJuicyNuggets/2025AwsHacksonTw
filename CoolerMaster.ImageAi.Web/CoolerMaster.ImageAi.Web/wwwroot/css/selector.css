@@ -97,15 +97,39 @@
             padding-left: 1.5px;
         }
 
+.product-section {
+    flex-grow: 1;
+    margin-top: 1rem; /* 增加產品區塊的上邊距，避免被擋住 */
+}
+
 .filter-section {
     padding: 1rem;
     border: 1px solid #e0e0e0;
     border-radius: 0.5rem;
     background-color: #f8f9fa;
-    margin-top: 1rem;
+    margin-left: 1rem; /* 與產品區塊的間距 */
+    margin-top: 0; /* 移除頂部間距 */
+    width: 300px; /* 增加寬度 */
 }
 
     .filter-section select {
         height: auto;
         min-height: 100px;
     }
+
+
+.product-item.selected {
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    position: relative;
+}
+
+    .product-item.selected .product-radio {
+        display: block;
+    }
+
+button.disabled {
+    background-color: #e0e0e0; /* 灰色背景 */
+    color: #a0a0a0; /* 灰色文字 */
+    cursor: not-allowed; /* 禁用狀態的鼠標樣式 */
+}
