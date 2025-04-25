@@ -1,102 +1,185 @@
-﻿const productGrid = document.getElementById('product-grid');
+﻿const imageSourceSelect = document.getElementById('image-source');
 const productCategorySelect = document.getElementById('product-category');
-const imageSourceSelect = document.getElementById('image-source');
-const selectedCategoryFiltersContainer = document.getElementById('selected-category-filters');
+
 const selectedImageFiltersContainer = document.getElementById('selected-image-filters');
+const selectedCategoryFiltersContainer = document.getElementById('selected-category-filters');
 
-// 用於存儲已選的篩選條件
-let selectedCategories = [];
 let selectedImageSources = [];
+let selectedCategories = [];
 
-// 監聽產品類別篩選選項的變化
-productCategorySelect.addEventListener('change', function () {
-    const selectedValues = Array.from(productCategorySelect.selectedOptions).map(option => option.value);
 
-    // 找出新增的選項
-    const newSelections = selectedValues.filter(value => !selectedCategories.includes(value));
-    selectedCategories = selectedValues;
+// 判斷 badge 是否已經存在
+function isTagAlreadyAdded(value, container) {
+    return Array.from(container.children).some(child => child.getAttribute('data-value') === value);
+}
 
-    // 更新篩選標籤，避免重複加入
-    newSelections.forEach(value => {
-        if (!isTagAlreadyAdded(value, selectedCategoryFiltersContainer)) {
-            createFilterBadge(value, selectedCategories, selectedCategoryFiltersContainer, productCategorySelect);
-        }
-    });
-
-    filterProducts();
-});
-
-// 監聽圖片來源篩選選項的變化
-imageSourceSelect.addEventListener('change', function () {
-    const selectedValues = Array.from(imageSourceSelect.selectedOptions).map(option => option.value);
-
-    // 找出新增的選項
-    const newSelections = selectedValues.filter(value => !selectedImageSources.includes(value));
-    selectedImageSources = selectedValues;
-
-    // 更新篩選標籤，避免重複加入
-    newSelections.forEach(value => {
-        if (!isTagAlreadyAdded(value, selectedImageFiltersContainer)) {
-            createFilterBadge(value, selectedImageSources, selectedImageFiltersContainer, imageSourceSelect);
-        }
-    });
-
-    filterProducts();
-});
-
-// 創建篩選標籤
+// 建立 badge 元素
 function createFilterBadge(value, filterArray, container, selectElement) {
     const span = document.createElement('span');
-    span.textContent = value.charAt(0).toUpperCase() + value.slice(1).replace('-', ' ');
+    span.className = 'filter-badge';
     span.setAttribute('data-value', value);
-    span.classList.add('filter-badge');
+    span.textContent = value;
 
-    const removeBtn = document.createElement('span');
-    removeBtn.textContent = '×';
-    removeBtn.classList.add('remove-btn');
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = '&times;';
+    removeBtn.className = 'remove-btn';
+    span.appendChild(removeBtn);
+
     removeBtn.addEventListener('click', function () {
-        // 從對應的篩選條件中移除該值
         const index = filterArray.indexOf(value);
         if (index > -1) {
             filterArray.splice(index, 1);
         }
 
-        // 從多選框中取消選中該值
         Array.from(selectElement.options).forEach(option => {
             if (option.value === value) {
                 option.selected = false;
             }
         });
 
-        // 移除標籤並更新篩選
         container.removeChild(span);
-        filterProducts();
+
+        if (container.id === 'selected-category-filters') {
+            selectedCategories = selectedCategories.filter(val => val !== value);
+            filterByProductCategory();
+        } else if (container.id === 'selected-image-filters') {
+            selectedImageSources = selectedImageSources.filter(val => val !== value);
+            filterByImageSource();
+        }
     });
 
-    span.appendChild(removeBtn);
     container.appendChild(span);
 }
 
-// 檢查標籤是否已經存在
-function isTagAlreadyAdded(value, container) {
-    return Array.from(container.children).some(tag => tag.getAttribute('data-value') === value);
-}
+// 僅根據 selectedCategories 控制 .col 顯示
+function filterByProductCategory() {
+    const items = document.querySelectorAll('.col');
 
-// 根據篩選條件顯示或隱藏產品
-function filterProducts() {
-    Array.from(productGrid.children).forEach(product => {
-        const productCategory = product.getAttribute('data-category');
-        const imageSource = product.getAttribute('data-image-source');
-
-        const matchesCategory =
-            selectedCategories.length === 0 || selectedCategories.includes(productCategory);
-        const matchesImageSource =
-            selectedImageSources.length === 0 || selectedImageSources.includes(imageSource);
-
-        if (matchesCategory && matchesImageSource) {
-            product.style.display = 'block';
-        } else {
-            product.style.display = 'none';
+    items.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        const shouldShow = selectedCategories.length === 0 || selectedCategories.includes(itemCategory);
+        item.style = shouldShow ? '' : 'display:none!important';
+        if (!shouldShow) {
+            item.classList.remove('selected');
+            const radio = item.querySelector('.product-radio');
+            if (radio) {
+                radio.checked = false;
+            }
         }
     });
+}
+
+// 僅根據 selectedImageSources 控制 .source-divider 顯示
+function filterByImageSource() {
+    const dividers = document.querySelectorAll('.source-divider');
+
+    dividers.forEach(divider => {
+        const source = divider.getAttribute('data-source');
+        const shouldShow = selectedImageSources.length === 0 || selectedImageSources.includes(source);
+        divider.style.display = shouldShow ? '' : 'none';
+        if (!shouldShow) {
+            const cols = divider.querySelectorAll('.col');
+            cols.forEach(col => {
+                col.classList.remove('selected');
+                const radio = col.querySelector('.product-radio');
+                if (radio) {
+                    radio.checked = false;
+                }
+            });
+        }
+    });
+}
+
+// Product Category 篩選器邏輯
+productCategorySelect.addEventListener('change', function () {
+    const selectedValues = Array.from(productCategorySelect.selectedOptions).map(option => option.value);
+    selectedValues.forEach(value => {
+        if (!selectedCategories.includes(value)) {
+            selectedCategories.push(value);
+        }
+    });
+
+    selectedValues.forEach(value => {
+        if (!isTagAlreadyAdded(value, selectedCategoryFiltersContainer)) {
+            createFilterBadge(value, selectedCategories, selectedCategoryFiltersContainer, productCategorySelect);
+        }
+    });
+
+    filterByProductCategory();
+});
+
+// Image Source 篩選器邏輯
+imageSourceSelect.addEventListener('change', function () {
+    const selectedValues = Array.from(imageSourceSelect.selectedOptions).map(option => option.value);
+    selectedValues.forEach(value => {
+        if (!selectedImageSources.includes(value)) {
+            selectedImageSources.push(value);
+        }
+    });
+
+    selectedValues.forEach(value => {
+        if (!isTagAlreadyAdded(value, selectedImageFiltersContainer)) {
+            createFilterBadge(value, selectedImageSources, selectedImageFiltersContainer, imageSourceSelect);
+        }
+    });
+
+    filterByImageSource();
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 點擊產品卡片切換選擇狀態
+    document.querySelectorAll('.product-item').forEach(item => {
+        item.addEventListener('click', function () {
+            const radio = this.querySelector('.product-radio');
+            const dataId = this.getAttribute('data-id');
+
+            if (radio.checked) {
+                radio.checked = false;
+                this.classList.remove('selected');
+            } else {
+                if (new SelectedProducts().get().length >= maxSelection) {
+                    alert(`最多只能選取 ${maxSelection} 張圖片`);
+                    return;
+                }
+                radio.checked = true;
+                this.classList.add('selected');
+            }
+        });
+    });
+
+    // 點擊 "選取" 按鈕
+    document.getElementById('select-button').addEventListener('click', function () {
+        const selectedProductDetails = [];
+        new SelectedProducts().get().forEach(item => {
+            selectedProductDetails.push({
+                id: item.getAttribute('data-id'),
+                name: item.getAttribute('data-name'),
+                category: item.getAttribute('data-category'),
+                source: item.getAttribute('data-source'),
+                imageUrl: item.getAttribute('data-imageurl')
+            });
+        });
+
+        if (selectedProductDetails.length === 0) {
+            console.log('未選取任何圖片，操作已略過。');
+            return;
+        }
+        else {
+            if (confirm('是否確定選定圖片?')) {
+                // 送出選取的產品
+                console.log('選取的圖片:', JSON.stringify(selectedProductDetails, null, 2));
+            }
+        }
+
+    });
+});
+
+class SelectedProducts {
+    constructor() {
+        this.selectedItems = document.querySelectorAll('.product-item.selected');
+    }
+
+    get() {
+        return this.selectedItems;
+    }
 }

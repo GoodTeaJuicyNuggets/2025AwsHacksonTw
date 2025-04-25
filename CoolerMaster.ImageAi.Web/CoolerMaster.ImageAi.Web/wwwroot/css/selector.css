@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     text-align: center;
     padding: 0.25rem;
     margin: auto;
@@ -22,29 +22,47 @@
 
     .img-card img {
         max-width: 100%;
-        max-height: 100%;
+        max-height: 85%;
         object-fit: contain;
         display: block;
     }
 
 .card-footer {
-    font-size: 0.8rem;
-    padding-top: 0.2rem;
+    font-size: 0.85rem;
+    padding-top: 4px;
     color: #555;
+    margin-top: 4px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.filter-section {
-    padding: 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 0.5rem;
-    background-color: #f8f9fa;
-    margin-top: 1rem;
+.source-divider {
+    position: relative;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #ccc;
 }
 
-    .filter-section select {
-        height: auto; /* 適應多選框的高度 */
-        min-height: 100px; /* 設定多選框的最小高度 */
-    }
+.source-label {
+    position: absolute;
+    top: -14px;
+    left: 1rem;
+    background-color: #fff;
+    padding: 0 0.75rem;
+    font-weight: bold;
+    color: #333;
+    font-size: 1rem;
+}
+
+.custom-grid {
+    display: grid;
+    gap: 0.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    justify-content: start;
+}
 
 .selected-filters {
     margin-top: 0.5rem;
@@ -63,15 +81,55 @@
 
         .selected-filters span .remove-btn {
             position: absolute;
-            top: 50%;
-            right: -8px;
-            transform: translateY(-50%);
+            right: 0px;
+            transform: translate(50%, -50%);
             background-color: red;
             color: white;
-            font-size: 0.6rem;
+            font-size: 0.8rem;
             border-radius: 50%;
             width: 16px;
             height: 16px;
             text-align: center;
+            line-height: 1.5px; /* 垂直置中 */
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            /* 這行是關鍵：讓「×」字往左一點 */
+            padding-left: 1.5px;
         }
+
+.product-section {
+    flex-grow: 1;
+    margin-top: 1rem; /* 增加產品區塊的上邊距，避免被擋住 */
+}
+
+.filter-section {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    margin-left: 1rem; /* 與產品區塊的間距 */
+    margin-top: 0; /* 移除頂部間距 */
+    width: 300px; /* 增加寬度 */
+}
+
+    .filter-section select {
+        height: auto;
+        min-height: 100px;
+    }
+
+
+.product-item.selected {
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    position: relative;
+}
+
+    .product-item.selected .product-radio {
+        display: block;
+    }
+
+button.disabled {
+    background-color: #e0e0e0; /* 灰色背景 */
+    color: #a0a0a0; /* 灰色文字 */
+    cursor: not-allowed; /* 禁用狀態的鼠標樣式 */
+}
