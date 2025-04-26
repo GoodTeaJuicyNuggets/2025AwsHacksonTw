@@ -1,0 +1,62 @@
+﻿@using (Html.BeginForm())
+{
+    <div class="card">
+        <div class="card-header">
+            基礎參數
+        </div>
+        <div class="card-body">
+            <div class="mb-3 row">
+                <label for="ImageWidth" class="col-sm-4 col-form-label">圖像寬度 (Width)</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("ImageWidth", "1200", new { @class = "form-control", id = "ImageWidth" })
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="ImageHeight" class="col-sm-4 col-form-label">圖像高度 (Height)</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("ImageHeight", "", new { @class = "form-control", id = "ImageHeight" })
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="ImageQuality" class="col-sm-4 col-form-label">圖像品質 (Quality)</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("ImageQuality", "", new { @class = "form-control", id = "ImageQuality" })
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="CfgScale" class="col-sm-4 col-form-label">提示彈性 (cfgScale)</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("CfgScale", "", new { @class = "form-control", id = "CfgScale", placeholder = "建議值為 7.0-8.0" })
+                    <small class="form-text text-muted">建議值為 7.0-8.0</small>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="Seed" class="col-sm-4 col-form-label">變化性參數 (Seed)</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("Seed", "0", new { @class = "form-control", id = "Seed", placeholder = "預設為 0" })
+                    <small class="form-text text-muted">預設為 0</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            額外參數
+        </div>
+        <div class="card-body">
+            <div class="mb-3 row">
+                <label for="NegativeText" class="col-sm-4 col-form-label">Negative Text</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("NegativeText", "", new { @class = "form-control", id = "NegativeText" })
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="NumberOfImages" class="col-sm-4 col-form-label">Number of images</label>
+                <div class="col-sm-8">
+                    @Html.TextBox("NumberOfImages", "", new { @class = "form-control", id = "NumberOfImages" })
+                </div>
+            </div>
+        </div>
+    </div>
+}
