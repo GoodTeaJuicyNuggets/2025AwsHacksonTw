@@ -6,48 +6,255 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoolerMaster AI Agent</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/index.css">
+    <style>
+        #uploadArea {
+            border: 1px solid #007bff; /* 保持原有的邊框樣式 */
+            border-radius: 0.25rem; /* 保持原有的圓角樣式 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            flex-grow: 8; /* 設定 uploadArea 的 flex-grow 為 2 */
+        }
+
+        #previewArea {
+            border: 1px solid #6c757d; /* 保持原有的邊框樣式 */
+            border-radius: 0.25rem; /* 保持原有的圓角樣式 */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding: 0.75rem;
+            flex-grow: 1; /* 設定 previewArea 的 flex-grow 為 1 */
+        }
+
+        .preview-image {
+            height: auto; /* 保持圖片的原始比例 */
+            width: auto; /* 讓圖片根據內容自適應寬度 */
+            max-height: 100%; /* 限制圖片的最大高度為容器的高度，避免垂直方向超出 */
+            width: 30px;
+            height: 30px;
+        }
+    </style>
 </head>
 <body>
     <div class="container py-5">
         <h2 class="text-center mb-4">CoolerMaster Imager</h2>
-        <div class="d-flex align-items-center mb-4">
-            <select class="form-select action-dropdown me-2" id="actionDropdown" aria-label="Action Options">
-                <option selected disabled>Choose Action</option>
-                <option value="generate">Generate</option>
-                <option value="adjust">Adjust</option>
-                <option value="extend-idea">Extend Idea</option>
-                <option value="merge">Merge</option>
-            </select>
-            <button class="btn btn-primary" id="importButton">Import Website Images</button>
-            <button class="btn btn-success ms-auto" id="uploadButton">Upload</button>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="upload-area border border-primary rounded d-flex align-items-center justify-content-center p-3" id="uploadArea">
-                    Click or drag an image here to upload
+        @using (Html.BeginForm("CoolerMasterImager", "Home", FormMethod.Post, new { id = "CoolerMasterAiAgentForm" }))
+        {
+            <div class="row g-4 equal-height">
+                <div class="col-md-4 equal-height-child">
+                    @Html.Partial("_ImageGenerationParameters")
+                </div>
+                <div class="col-md-8 equal-height-child">
+                    <div class="d-flex input-output-container" style="flex-grow: 1;">
+                        <div class="input-area">
+                            <h3 class="mb-2">輸入</h3>
+                            <div id="uploadArea" class="border border-primary rounded d-flex align-items-center justify-content-center p-3" >
+                                Click or drag an image here to upload
+                            </div>
+                            <div id="previewArea" class="border border-secondary rounded p-3" style="flex-grow: 1; display: flex; flex-wrap: wrap; align-items: flex-start;">
+                                <img id="previewImage1" alt="Image Preview 1" class="preview-image" />
+                                <img id="previewImage2" alt="Image Preview 2" class="preview-image" />
+                                <img id="previewImage3" alt="Image Preview 3" class="preview-image" />
+                                <img id="previewImage4" alt="Image Preview 4" class="preview-image" />
+                                <img id="previewImage5" alt="Image Preview 5" class="preview-image" />
+                                
+                            </div>
+                            <div class="d-flex input-buttons">
+                                <input type="file" id="fileInput" multiple style="display: none;" accept="image/*">
+                                <button class="btn btn-secondary me-2" id="btnUploadDraft">上傳草稿</button>
+                                <button class="btn btn-info" id="btnGallery">圖庫</button>
+                            </div>
+                        </div>
+                        <div class="output-area">
+                            <h3 class="mb-2">輸出</h3>
+                            <div id="outputArea" class="border border-secondary rounded d-flex align-items-center justify-content-center p-3" style="flex-grow: 1;">
+                                <img id="outputImage" alt="Image Output" class="img-fluid"
+                                     src="@ViewBag.GeneratedImage" />
+                            </div>
+                            <div class="mt-2 d-flex justify-content-end">
+                                <button class="btn btn-success" id="btnSaveImage" name="actionType" value="SaveImage">Save Result</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group mt-4 tasktype-input-group">
+                        <select class="form-select tasktype-dropdown" id="ddlTasktype" name="TaskType">
+                            <option selected value="textToImage">文字產圖</option>
+                            <option value="generateVariation">變體生成/合成</option>
+                            <option value="adjustMaskReplace">調整-遮罩替換</option>
+                            <option value="adjustFineTune">調整-微調修改</option>
+                            <option value="adjustColorMaterial">調整-顏色材質替換</option>
+                            <option value="draftInpaint">草稿填滿</option>
+                        </select>
+                        <input type="text" class="form-control" id="txtPrompt" name="Prompt" placeholder="請輸入您的指令...">
+                        <button type="submit" class="btn btn-outline-success" id="btnSendPrompt" name="actionType" value="SendPrompt">&#8594;</button>
+                    </div>
+                    <input type="hidden" name="imageData1" id="hidImageData1" value="" />
+                    <input type="hidden" name="imageData2" id="hidImageData2" value="" />
+                    <input type="hidden" name="imageData3" id="hidImageData3" value="" />
+                    <input type="hidden" name="imageData4" id="hidImageData4" value="" />
+                    <input type="hidden" name="imageData5" id="hidImageData5" value="" />
+                    <input type="hidden" name="outputImageData" id="hidOutputImageData" value="" />
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="image-preview border border-secondary rounded d-flex align-items-center justify-content-center p-3">
-                    <img id="previewImage" alt="Image Preview" class="img-fluid" />
-                </div>
-            </div>
-        </div>
-        <div class="input-group mt-4">
-            <select class="form-select category-dropdown" id="categoryDropdown" aria-label="Product Category">
-                <option selected disabled>Choose Category</option>
-                <option value="pc-cases">PC Cases</option>
-                <option value="cooler">Cooler</option>
-                <option value="accessories">Accessories</option>
-            </select>
-            <input type="text" class="form-control" id="textBox" placeholder="Enter text here...">
-            <button class="btn btn-outline-success" id="generateButton">Generate</button>
-        </div>
+        }
     </div>
-    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/index.js"></script>
 </body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadDraftButton = document.getElementById('btnUploadDraft');
+        const fileInput = document.getElementById('fileInput');
+        const previewArea = document.getElementById('previewArea');
+        const previewImages = previewArea.querySelectorAll('img'); 
+
+        uploadDraftButton.addEventListener('click', function() {
+                console.log('uploadDraftButton')
+                    event.preventDefault();
+            fileInput.click(); 
+        });
+
+        // 監聽檔案輸入框的 change 事件 (當選擇檔案後觸發)
+        fileInput.addEventListener('change', function() {
+            const files = this.files; // 獲取選取的所有檔案
+
+            // 限制上傳的圖片數量為 5 張
+            const numberOfFiles = Math.min(files.length, previewImages.length);
+
+            // 遍歷選取的檔案並預覽
+            for (let i = 0; i < numberOfFiles; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    // 將讀取到的圖片資料 (Base64) 設定到對應的 <img> 標籤的 src 屬性
+                    previewImages[i].src = e.target.result;
+                }
+
+                reader.readAsDataURL(file); // 將檔案讀取為 Base64 編碼的 Data URL
+            }
+
+            // 如果上傳的圖片少於 5 張，則清空剩餘的預覽框
+            for (let i = numberOfFiles; i < previewImages.length; i++) {
+                previewImages[i].src = ''; // 清空 src 屬性，移除預覽
+            }
+
+            // 清空檔案輸入框的值，以便下次可以再次選擇相同的檔案
+            fileInput.value = '';
+        });
+
+        const ddlTasktype = document.getElementById('ddlTasktype');
+        const previewImage1 = document.getElementById('previewImage1');
+        const previewImage2 = document.getElementById('previewImage2');
+        const previewImage3 = document.getElementById('previewImage3');
+        const previewImage4 = document.getElementById('previewImage4');
+        const previewImage5 = document.getElementById('previewImage5');
+        const previewImageList = [previewImage1, previewImage2, previewImage3, previewImage4, previewImage5];
+
+
+        if (ddlTasktype) {
+            if (previewImage1) {
+                previewImage1.style.display = ''; 
+            }
+            for (let i = 1; i < previewImageList.length; i++) {
+                if (previewImageList[i]) {
+                    previewImageList[i].style.display = 'none';
+                }
+            }
+
+            ddlTasktype.addEventListener('change', function() {
+                const selectedValue = this.value; // 取得選取的值
+
+                if (selectedValue === 'textToImage') {
+                    if (previewImage1) {
+                        previewImage1.style.display = ''; 
+                    }
+                    for (let i = 1; i < previewImageList.length; i++) {
+                        if (previewImageList[i]) {
+                            previewImageList[i].style.display = 'none';
+                        }
+                    }
+                } else {
+                    // 如果不是 textToImage，則顯示所有的 previewImage
+                    previewImageList.forEach(img => {
+                        if (img) {
+                            img.style.display = ''; 
+                        }
+                    });
+                }
+            });
+
+            if (ddlTasktype.value === 'textToImage') {
+                if (previewImage1) {
+                    previewImage1.style.display = '';
+                }
+                for (let i = 1; i < previewImageList.length; i++) {
+                    if (previewImageList[i]) {
+                        previewImageList[i].style.display = 'none';
+                    }
+                }
+            } else {
+                previewImageList.forEach(img => {
+                    if (img) {
+                        img.style.display = '';
+                    }
+                });
+            }
+        }
+    });
+
+    document.getElementById('CoolerMasterAiAgentForm').addEventListener('submit', function () {
+        const previewImages = [
+            document.getElementById('previewImage1'),
+            document.getElementById('previewImage2'),
+            document.getElementById('previewImage3'),
+            document.getElementById('previewImage4'),
+            document.getElementById('previewImage5')
+        ];
+        const imageDataInputs = [
+            document.getElementById('hidImageData1'),
+            document.getElementById('hidImageData2'),
+            document.getElementById('hidImageData3'),
+            document.getElementById('hidImageData4'),
+            document.getElementById('hidImageData5')
+        ];
+
+        for (let i = 0; i < previewImages.length; i++) {
+            const previewImage = previewImages[i];
+            const imageDataInput = imageDataInputs[i];
+
+            if (previewImage && previewImage.src && previewImage.src !== window.location.href) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = previewImage.naturalWidth;
+                canvas.height = previewImage.naturalHeight;
+                ctx.drawImage(previewImage, 0, 0);
+                imageDataInput.value = canvas.toDataURL();
+            } else {
+                imageDataInput.value = "";
+            }
+        }
+
+        const outputImage = document.getElementById('outputImage');
+        const hidOutputImageData = document.getElementById('hidOutputImageData');
+
+        if (outputImage.src && outputImage.src !== window.location.href) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = outputImage.naturalWidth;
+            canvas.height = outputImage.naturalHeight;
+            ctx.drawImage(outputImage, 0, 0);
+            hidOutputImageData.value = canvas.toDataURL();
+
+        } else {
+            hidOutputImageData.value = ""; 
+        }
+    });
+
+</script>
