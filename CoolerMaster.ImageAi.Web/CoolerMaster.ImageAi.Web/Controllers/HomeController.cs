@@ -100,8 +100,26 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                     imageData1 = imageData1.Substring(imageData1.IndexOf(',') + 1);
                     base64ImagesList.Add(imageData1);
                 }
-
-
+                if (!string.IsNullOrEmpty(imageData2))
+                {
+                    imageData2 = imageData2.Substring(imageData2.IndexOf(',') + 1);
+                    base64ImagesList.Add(imageData2);
+                }
+                if (!string.IsNullOrEmpty(imageData3))
+                {
+                    imageData3 = imageData3.Substring(imageData3.IndexOf(',') + 1);
+                    base64ImagesList.Add(imageData3);
+                }
+                if (!string.IsNullOrEmpty(imageData4))
+                {
+                    imageData4 = imageData4.Substring(imageData4.IndexOf(',') + 1);
+                    base64ImagesList.Add(imageData4);
+                }
+                if (!string.IsNullOrEmpty(imageData5))
+                {
+                    imageData5 = imageData5.Substring(imageData5.IndexOf(',') + 1);
+                    base64ImagesList.Add(imageData5);
+                }
                 return await _awsBedrockClient.ImageVariation(prompt, base64ImagesList, imgParam);
             }
             else
