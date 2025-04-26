@@ -8,25 +8,25 @@
             <div class="mb-3 row">
                 <label for="ImageWidth" class="col-sm-4 col-form-label">圖像寬度 (Width)</label>
                 <div class="col-sm-8">
-                    @Html.TextBox("ImageWidth", "1200", new { @class = "form-control", id = "ImageWidth" })
+                    @Html.TextBox("ImageWidth", "512", new { @class = "form-control", id = "ImageWidth" })
                 </div>
             </div>
             <div class="mb-3 row">
                 <label for="ImageHeight" class="col-sm-4 col-form-label">圖像高度 (Height)</label>
                 <div class="col-sm-8">
-                    @Html.TextBox("ImageHeight", "", new { @class = "form-control", id = "ImageHeight" })
+                    @Html.TextBox("ImageHeight", "512", new { @class = "form-control", id = "ImageHeight" })
                 </div>
             </div>
             <div class="mb-3 row">
                 <label for="ImageQuality" class="col-sm-4 col-form-label">圖像品質 (Quality)</label>
                 <div class="col-sm-8">
-                    @Html.TextBox("ImageQuality", "", new { @class = "form-control", id = "ImageQuality" })
+                    @Html.TextBox("ImageQuality", "Standard", new { @class = "form-control", id = "ImageQuality" })
                 </div>
             </div>
             <div class="mb-3 row">
                 <label for="CfgScale" class="col-sm-4 col-form-label">提示彈性 (cfgScale)</label>
                 <div class="col-sm-8">
-                    @Html.TextBox("CfgScale", "", new { @class = "form-control", id = "CfgScale", placeholder = "建議值為 7.0-8.0" })
+                    @Html.TextBox("CfgScale", "7.5", new { @class = "form-control", id = "CfgScale", placeholder = "建議值為 7.0-8.0" })
                     <small class="form-text text-muted">建議值為 7.0-8.0</small>
                 </div>
             </div>
@@ -54,7 +54,7 @@
             <div class="mb-3 row">
                 <label for="NumberOfImages" class="col-sm-4 col-form-label">Number of images</label>
                 <div class="col-sm-8">
-                    @Html.TextBox("NumberOfImages", "", new { @class = "form-control", id = "NumberOfImages" })
+                    @Html.TextBox("NumberOfImages", "1", new { @class = "form-control", id = "NumberOfImages" })
                 </div>
             </div>
         </div>

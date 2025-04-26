@@ -1,27 +1,53 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Mime;
+using System.Threading.Tasks;
 using CoolerMaster.ImageAi.Shared.Interfaces;
+using CoolerMaster.ImageAi.Shared.Models;
 using CoolerMaster.ImageAi.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace CoolerMaster.ImageAi.Web.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IWebHostEnvironment _env;
         private readonly IAwsS3Client _awsS3Client;
-        public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env, IAwsS3Client awsS3Client)
+        private readonly IAwsBedrockClient _awsBedrockClient;
+        public HomeController
+            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient)
         {
             _logger = logger;
-            _env = env;
             _awsS3Client = awsS3Client;
+            _awsBedrockClient = awsBedrockClient;
         }
 
         public IActionResult Index()
         {
             return View();
         }
-        public async Task<IActionResult> GenerateImage(string taskType, string prompt, string imageData, ImageGenerationViewModel imageGeneration)
+
+        public async Task<IActionResult> CoolerMasterImager
+            (string actionType, string taskType, string prompt, string imageData, ImageParameterViewModel imageParam)
+        {
+            if (actionType == "SaveImage")
+            {
+                await SaveImageToS3(taskType, imageData);
+            }
+            else if(actionType == "SendPrompt")
+            {
+                string rawBase64Image = await GenBase64Image(taskType, prompt, imageData, imageParam);
+                string mimeType = "image/png";
+                string base64Image = $"data:{mimeType};base64,{rawBase64Image}";
+                ViewBag.GeneratedImage = base64Image;
+            }
+
+            return View("Index");
+        }
+        private async Task<bool> SaveImageToS3(string taskType, string imageData)
         {
             string contentType = null;
             string folderName = "generated-images";
@@ -35,7 +61,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 int commaIndex = imageData.IndexOf(',');
                 if (commaIndex != -1 && imageData.StartsWith("data:"))
                 {
-                    string metadata = imageData.Substring(5, commaIndex - 5); 
+                    string metadata = imageData.Substring(5, commaIndex - 5);
                     string[] metadataParts = metadata.Split(';');
                     if (metadataParts.Length > 0 && metadataParts[0].Contains('/'))
                     {
@@ -43,13 +69,43 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                     }
                 }
 
-                bool uploadSuccess = await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? "");
+                return await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? "");
             }
 
-            
-
-            return View("Index");
+            return false;
         }
+        private async Task<string> GenBase64Image(string taskType, string prompt, string imageData, ImageParameterViewModel imageParam)
+        {
+            var imgParam = new ImageParameter
+            {
+                ImageWidth = imageParam.ImageWidth,
+                ImageHeight = imageParam.ImageHeight,
+                Seed = imageParam.Seed,
+                ImageQuality = imageParam.ImageQuality,
+                CfgScale = imageParam.CfgScale,
+                NegativeText = imageParam.NegativeText,
+                NumberOfImages = imageParam.NumberOfImages
+            };
+
+            if(taskType == "generateVariation")
+            {
+
+                List<string> base64ImagesList = new List<string>
+                {
+                    imageData.Substring(imageData.IndexOf(',') + 1)
+                };
+
+                return await _awsBedrockClient.ImageVariation(prompt, base64ImagesList, imgParam);
+            }
+            else
+            {
+                imageData = imageData.Substring(imageData.IndexOf(',') + 1);
+                return await _awsBedrockClient.TextToImage(prompt, imageData, imgParam);
+            }
+        }
+
+
+
 
         public IActionResult Selector(int maxSelection = 1)
         {

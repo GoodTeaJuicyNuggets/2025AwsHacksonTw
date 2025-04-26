@@ -12,7 +12,7 @@
 <body>
     <div class="container py-5">
         <h2 class="text-center mb-4">CoolerMaster Imager</h2>
-        @using (Html.BeginForm("GenerateImage", "Home", FormMethod.Post, new { id = "CoolerMasterAiAgentForm" }))
+        @using (Html.BeginForm("CoolerMasterImager", "Home", FormMethod.Post, new { id = "CoolerMasterAiAgentForm" }))
         {
             <div class="row g-4 equal-height">
                 <div class="col-md-4 equal-height-child">
@@ -33,24 +33,25 @@
                         <div class="output-area">
                             <h3 class="mb-2">輸出</h3>
                             <div id="outputArea" class="border border-secondary rounded d-flex align-items-center justify-content-center p-3" style="flex-grow: 1;">
-                                <img id="previewImage" alt="Image Preview" class="img-fluid" />
+                                <img id="previewImage" alt="Image Preview" class="img-fluid"
+                                     src="@ViewBag.GeneratedImage" />
                             </div>
                             <div class="mt-2 d-flex justify-content-end">
-                                <button class="btn btn-success" id="btnSaveImage">Save Result</button>
+                                <button class="btn btn-success" id="btnSaveImage" name="actionType" value="SaveImage">Save Result</button>
                             </div>
                         </div>
                     </div>
                     <div class="input-group mt-4 tasktype-input-group">
                         <select class="form-select tasktype-dropdown" id="ddlTasktype" name="TaskType">
                             <option selected value="textToImage">文字產圖</option>
+                            <option value="generateVariation">變體生成/合成</option>
                             <option value="adjustMaskReplace">調整-遮罩替換</option>
                             <option value="adjustFineTune">調整-微調修改</option>
                             <option value="adjustColorMaterial">調整-顏色材質替換</option>
                             <option value="draftInpaint">草稿填滿</option>
-                            <option value="generateVariation">變體生成/合成</option>
                         </select>
                         <input type="text" class="form-control" id="txtPrompt" name="Prompt" placeholder="請輸入您的指令...">
-                        <button type="submit" class="btn btn-outline-success" id="btnGenImage">&#8594;</button>
+                        <button type="submit" class="btn btn-outline-success" id="btnSendPrompt" name="actionType" value="SendPrompt">&#8594;</button>
                     </div>
                     <input type="hidden" name="imageData" id="hidImageData" value="" />
                 </div>
@@ -76,6 +77,9 @@
         } else {
             imageDataInput.value = ""; 
         }
+
+
+
     });
 
 </script>
