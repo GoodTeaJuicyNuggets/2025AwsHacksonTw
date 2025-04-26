@@ -1,6 +1,5 @@
-using System;
 using System.Diagnostics;
-using CoolerMaster.ImageAi.Web.Interfaces;
+using CoolerMaster.ImageAi.Shared.Interfaces;
 using CoolerMaster.ImageAi.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,7 +25,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         {
             string contentType = null;
             string folderName = "generated-images";
-            string fileName = $"{taskType}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}";
+            string fileName = $"{taskType}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.png";
 
             if (!string.IsNullOrEmpty(imageData))
             {

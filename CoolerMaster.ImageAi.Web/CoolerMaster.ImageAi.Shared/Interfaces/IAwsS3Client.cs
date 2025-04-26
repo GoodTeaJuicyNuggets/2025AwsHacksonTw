@@ -1,4 +1,4 @@
-﻿namespace CoolerMaster.ImageAi.Web.Interfaces
+﻿namespace CoolerMaster.ImageAi.Shared.Interfaces
 {
     public interface IAwsS3Client
     {

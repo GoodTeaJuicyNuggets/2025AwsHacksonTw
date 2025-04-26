@@ -1,4 +1,4 @@
-﻿namespace CoolerMaster.ImageAi.Web.Configurations
+﻿namespace CoolerMaster.ImageAi.Shared.Configurations
 {
     public class AwsS3Config
     {

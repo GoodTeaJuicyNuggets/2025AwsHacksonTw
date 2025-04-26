@@ -1,6 +1,6 @@
-using CoolerMaster.ImageAi.Web.Configurations;
-using CoolerMaster.ImageAi.Web.Infrastructure;
-using CoolerMaster.ImageAi.Web.Interfaces;
+using CoolerMaster.ImageAi.Shared;
+using CoolerMaster.ImageAi.Shared.Configurations;
+using CoolerMaster.ImageAi.Shared.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;

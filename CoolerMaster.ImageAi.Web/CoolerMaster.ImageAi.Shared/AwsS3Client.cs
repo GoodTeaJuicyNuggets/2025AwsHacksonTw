@@ -1,12 +1,11 @@
 ﻿using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
-using CoolerMaster.ImageAi.Web.Configurations;
-using CoolerMaster.ImageAi.Web.Interfaces;
+using CoolerMaster.ImageAi.Shared.Configurations;
+using CoolerMaster.ImageAi.Shared.Interfaces;
 using System.Net;
-using System.Text;
 
-namespace CoolerMaster.ImageAi.Web.Infrastructure
+namespace CoolerMaster.ImageAi.Shared
 {
     public class AwsS3Client : IAwsS3Client
     {
@@ -24,7 +23,7 @@ namespace CoolerMaster.ImageAi.Web.Infrastructure
             var putRequest = new PutObjectRequest
             {
                 BucketName = _awsS3Config.BucketName,
-                Key = $"{folderName}/{fileName}.png",
+                Key = $"{folderName}/{fileName}",
                 InputStream = imageStream,
                 ContentType = contentType
             };
