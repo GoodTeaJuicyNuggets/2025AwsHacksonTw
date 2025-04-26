@@ -54,6 +54,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 ViewBag.GeneratedImage = base64Image;
             }
 
+            ViewBag.SelectedTaskType = taskType;
             return View("Index");
         }
         private async Task<bool> SaveImageToS3(string taskType, string imageData)
@@ -98,6 +99,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 NumberOfImages = imageParam.NumberOfImages
             };
 
+            
             if(taskType == "generateVariation")
             {
                 List<string> base64ImagesList = new List<string>();
