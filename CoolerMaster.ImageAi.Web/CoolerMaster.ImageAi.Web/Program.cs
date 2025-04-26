@@ -16,6 +16,7 @@ var awsBedrockConfig = config.GetSection("AwsBedrockConfig").Get<AwsBedrockConfi
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IAwsS3Client>(_ => new AwsS3Client(awsS3Config));
 builder.Services.AddSingleton<IAwsBedrockClient>(_ => new AwsBedrockClient(awsBedrockConfig));
+builder.Services.AddSingleton<IAwsBedrcokAgentClient>(_ => new AwsBedrcokAgentClient(awsBedrockConfig));
 
 // Add ProductDbContext initialization
 builder.Services.AddDbContext<ProductDbContext>();
