@@ -72,7 +72,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                     }
                 }
 
-                return await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? "");
+                return !string.IsNullOrEmpty(await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? ""));
             }
 
             return false;

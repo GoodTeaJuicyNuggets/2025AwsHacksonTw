@@ -2,53 +2,56 @@
 using CoolerMaster.ImageAi.Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CoolerMaster.ImageAi.Crawler.Services
 {
     public class FileService
     {
+        private readonly AwsS3Client _s3Client;
+
+        public FileService(AwsS3Client s3Client)
+        {
+            _s3Client = s3Client;
+        }
+
         public async Task<List<ProductImage>> DownloadImages(List<string> imageUrls, string category, string productName, int productId)
         {
-            var baseFolder = Path.Combine(AppContext.BaseDirectory, "files", category);
-            Directory.CreateDirectory(baseFolder);
-
             var result = new List<ProductImage>();
 
             for (int i = 0; i < imageUrls.Count; i++)
             {
-                string sanitizedName = string.Join("_", productName.Split(Path.GetInvalidFileNameChars()));
-                string fileName = $"{sanitizedName}_{i + 1}.jpg";
-                string filePath = Path.Combine(baseFolder, fileName);
-                string relativePath = Path.Combine("files", category, fileName);
+                string fileName = Path.GetFileName(imageUrls[i]);
 
                 var productImage = new ProductImage
                 {
-                    ImageUrl = relativePath,
                     ProductId = productId,
                     ProductCategory = category,
                     ImageSource = ImageSource.Official
                 };
 
-                if (File.Exists(filePath))
+                try
                 {
-                    Console.WriteLine($"📁 檔案已存在，略過下載：{filePath}");
+                    using var client = new HttpClient();
+                    var imageData = await client.GetByteArrayAsync(imageUrls[i]);
+
+                    // Get the content type from the file extension
+                    string contentType = GetContentTypeFromExtension(Path.GetExtension(fileName));
+
+                    // 上傳到 S3 並獲取 URL
+                    using var imageDataStream = new MemoryStream(imageData);
+                    string s3Url = await _s3Client.UploadImageAsync(imageDataStream, category, fileName, contentType);
+
+                    productImage.ImageUrl = s3Url;
+
+                    Console.WriteLine($"🖼️ 已上傳到 S3：{s3Url}");
                 }
-                else
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        using var client = new HttpClient();
-                        var imageData = await client.GetByteArrayAsync(imageUrls[i]);
-                        await File.WriteAllBytesAsync(filePath, imageData);
-                        Console.WriteLine($"🖼️ 已下載：{filePath}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"❌ 下載失敗：{fileName}，原因：{ex.Message}");
-                    }
+                    Console.WriteLine($"❌ 上傳失敗：{fileName}，原因：{ex.Message}");
                 }
 
                 result.Add(productImage);
@@ -56,6 +59,21 @@ namespace CoolerMaster.ImageAi.Crawler.Services
 
             return result;
         }
-    }
 
+        private string GetContentTypeFromExtension(string extension)
+        {
+            switch (extension.ToLower())
+            {
+                case ".jpg":
+                case ".jpeg":
+                    return "image/jpeg";
+                case ".png":
+                    return "image/png";
+                case ".gif":
+                    return "image/gif";
+                default:
+                    return "application/octet-stream";
+            }
+        }
+    }
 }
