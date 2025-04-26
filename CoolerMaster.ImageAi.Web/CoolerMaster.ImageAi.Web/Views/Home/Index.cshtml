@@ -67,7 +67,7 @@
                             <div class="d-flex input-buttons">
                                 <input type="file" id="fileInput" multiple style="display: none;" accept="image/*">
                                 <button class="btn btn-secondary me-2" id="btnUploadDraft">上傳草稿</button>
-                                <button class="btn btn-info" id="btnGallery">圖庫</button>
+                                <button class="btn btn-info" id="btnGallery" onclick="openPopupWindow()">圖庫</button>
                             </div>
                         </div>
                         <div class="output-area">
@@ -257,4 +257,11 @@
         }
     });
 
+    function openPopupWindow() {
+        window.open('/Home/Selector', 'popupWindow', 'width=1280,height=720');
+    }
+
+    function receiveData(selectedList) {
+        console.log('收到選取結果:', selectedList);
+    }
 </script>

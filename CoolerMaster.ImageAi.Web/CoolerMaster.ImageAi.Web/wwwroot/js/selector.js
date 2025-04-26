@@ -152,11 +152,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedProductDetails = [];
         new SelectedProducts().get().forEach(item => {
             selectedProductDetails.push({
-                id: item.getAttribute('data-id'),
-                name: item.getAttribute('data-name'),
-                category: item.getAttribute('data-category'),
-                source: item.getAttribute('data-source'),
-                imageUrl: item.getAttribute('data-imageurl')
+                ImageId: item.getAttribute('data-id'),
+                Name: item.getAttribute('data-name'),
+                Category: item.getAttribute('data-category'),
+                Source: item.getAttribute('data-source'),
+                ImageUrl: item.getAttribute('data-imageurl'),
+                Prompt: item.getAttribute('data-prompt')
             });
         });
 
@@ -166,11 +167,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         else {
             if (confirm('是否確定選定圖片?')) {
-                // 送出選取的產品
-                console.log('選取的圖片:', JSON.stringify(selectedProductDetails, null, 2));
+                // 把選取的產品資料回傳給 opener（原本的父頁）
+                window.opener.receiveData(selectedProductDetails);
+
+                // 關掉自己
+                window.close();
             }
         }
-
     });
 });
 

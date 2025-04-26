@@ -39,7 +39,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
                     var imageData = await client.GetByteArrayAsync(imageUrls[i]);
 
                     // Get the content type from the file extension
-                    string contentType = GetContentTypeFromExtension(Path.GetExtension(fileName));
+                    string contentType = Utils.GetContentTypeFromExtension(Path.GetExtension(fileName));
 
                     // 上傳到 S3 並獲取 URL
                     using var imageDataStream = new MemoryStream(imageData);
@@ -58,22 +58,6 @@ namespace CoolerMaster.ImageAi.Crawler.Services
             }
 
             return result;
-        }
-
-        private string GetContentTypeFromExtension(string extension)
-        {
-            switch (extension.ToLower())
-            {
-                case ".jpg":
-                case ".jpeg":
-                    return "image/jpeg";
-                case ".png":
-                    return "image/png";
-                case ".gif":
-                    return "image/gif";
-                default:
-                    return "application/octet-stream";
-            }
         }
     }
 }

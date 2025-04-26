@@ -7,4 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CoolerMaster.ImageAi.Shared\CoolerMaster.ImageAi.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
 </Project>
