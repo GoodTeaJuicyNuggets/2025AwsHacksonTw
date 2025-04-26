@@ -24,23 +24,47 @@ namespace CoolerMaster.ImageAi.Shared
         }
         public async Task<string> TextToImage(string prompt, string base64Image, ImageParameter imgParam)
         {
-            var nativeRequest = JsonSerializer.Serialize(new
+            var nativeRequest = string.Empty;
+
+            if (!string.IsNullOrEmpty(base64Image))
             {
-                taskType = "TEXT_IMAGE",
-                textToImageParams = new
+                nativeRequest = JsonSerializer.Serialize(new
                 {
-                    conditionImage = base64Image,
-                    text = prompt
-                },
-                imageGenerationConfig = new
+                    taskType = "TEXT_IMAGE",
+                    textToImageParams = new
+                    {
+                        conditionImage = base64Image,
+                        text = prompt
+                    },
+                    imageGenerationConfig = new
+                    {
+                        seed = imgParam.Seed,
+                        quality = imgParam.ImageQuality.ToString().ToLower(),
+                        width = imgParam.ImageWidth,
+                        height = imgParam.ImageHeight,
+                        numberOfImages = imgParam.NumberOfImages
+                    }
+                });
+            }
+            else
+            {
+                nativeRequest = JsonSerializer.Serialize(new
                 {
-                    seed = imgParam.Seed,
-                    quality = imgParam.ImageQuality.ToString().ToLower(),
-                    width = imgParam.ImageWidth,
-                    height = imgParam.ImageHeight,
-                    numberOfImages = imgParam.NumberOfImages
-                }
-            });
+                    taskType = "TEXT_IMAGE",
+                    textToImageParams = new
+                    {
+                        text = prompt
+                    },
+                    imageGenerationConfig = new
+                    {
+                        seed = imgParam.Seed,
+                        quality = imgParam.ImageQuality.ToString().ToLower(),
+                        width = imgParam.ImageWidth,
+                        height = imgParam.ImageHeight,
+                        numberOfImages = imgParam.NumberOfImages
+                    }
+                });
+            }
 
             var request = new InvokeModelRequest()
             {

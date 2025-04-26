@@ -31,15 +31,18 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         }
 
         public async Task<IActionResult> CoolerMasterImager
-            (string actionType, string taskType, string prompt, string imageData, ImageParameterViewModel imageParam)
+            (string actionType, string taskType, string prompt, 
+             string imageData1, string imageData2, string imageData3, string imageData4, string imageData5, 
+             string outputImageData,
+             ImageParameterViewModel imageParam)
         {
             if (actionType == "SaveImage")
             {
-                await SaveImageToS3(taskType, imageData);
+                await SaveImageToS3(taskType, outputImageData);
             }
             else if(actionType == "SendPrompt")
             {
-                string rawBase64Image = await GenBase64Image(taskType, prompt, imageData, imageParam);
+                string rawBase64Image = await GenBase64Image(taskType, prompt, imageData1, imageData2, imageData3, imageData4, imageData5, imageParam);
                 string mimeType = "image/png";
                 string base64Image = $"data:{mimeType};base64,{rawBase64Image}";
                 ViewBag.GeneratedImage = base64Image;
@@ -74,7 +77,9 @@ namespace CoolerMaster.ImageAi.Web.Controllers
 
             return false;
         }
-        private async Task<string> GenBase64Image(string taskType, string prompt, string imageData, ImageParameterViewModel imageParam)
+        private async Task<string> GenBase64Image(string taskType, string prompt, 
+            string imageData1, string imageData2, string imageData3, string imageData4, string imageData5, 
+            ImageParameterViewModel imageParam)
         {
             var imgParam = new ImageParameter
             {
@@ -89,18 +94,24 @@ namespace CoolerMaster.ImageAi.Web.Controllers
 
             if(taskType == "generateVariation")
             {
-
-                List<string> base64ImagesList = new List<string>
+                List<string> base64ImagesList = new List<string>();
+                if (!string.IsNullOrEmpty(imageData1))
                 {
-                    imageData.Substring(imageData.IndexOf(',') + 1)
-                };
+                    imageData1 = imageData1.Substring(imageData1.IndexOf(',') + 1);
+                    base64ImagesList.Add(imageData1);
+                }
+
 
                 return await _awsBedrockClient.ImageVariation(prompt, base64ImagesList, imgParam);
             }
             else
             {
-                imageData = imageData.Substring(imageData.IndexOf(',') + 1);
-                return await _awsBedrockClient.TextToImage(prompt, imageData, imgParam);
+                if (!string.IsNullOrEmpty(imageData1))
+                {
+                    imageData1 = imageData1.Substring(imageData1.IndexOf(',') + 1);
+                }
+                    
+                return await _awsBedrockClient.TextToImage(prompt, imageData1, imgParam);
             }
         }
 
