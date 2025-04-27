@@ -68,9 +68,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const botMessageElement = document.createElement('div');
         botMessageElement.className = 'message bot-message'; // 使用 bot-message 样式
 
-        // 设置机器人消息内容，包含按钮
-        const uniqueId = `generateButton-${Date.now()}`; // 生成唯一的 ID
-        botMessageElement.innerHTML = `請確認您將以 "${message}" 進行圖片生成，請點擊 <button class="btn btn-link generate-button" data-id="${uniqueId}">這裡</button> 進行生成`;
+        // 设置机器人消息内容，包含超链接
+        const uniqueId = `generateLink-${Date.now()}`; // 生成唯一的 ID
+        botMessageElement.innerHTML = `請確認您將以 "${message}" 進行圖片生成，請點擊 <a href="#" class="generate-link" data-id="${uniqueId}">這裡</a> 進行生成`;
 
         // 将机器人消息添加到聊天框
         chatMessages.appendChild(botMessageElement);
@@ -78,10 +78,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // 滚动到底部
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 为所有生成按钮绑定点击事件
-        const generateButtons = document.querySelectorAll('.generate-button');
-        generateButtons.forEach(button => {
-            button.addEventListener('click', function () {
+        // 清空输入框
+        txtPrompt.value = '';
+
+        // 为所有生成链接绑定点击事件
+        const generateLinks = document.querySelectorAll('.generate-link');
+        generateLinks.forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault(); // 阻止默认的超链接跳转行为
                 btnCreateImage.click(); // 触发隐藏的提交按钮
             });
         });
@@ -100,16 +104,3 @@ document.addEventListener('DOMContentLoaded', function () {
         addChatMessage(txtPrompt.value);
     });
 });
-
-
-
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('CoolerMasterAiAgentForm');
-    const loadingIcon = document.getElementById('loadingIcon');
-
-    form.addEventListener('submit', function () {
-        // 显示加载图标
-        loadingIcon.classList.remove('d-none');
-    });
-});
-

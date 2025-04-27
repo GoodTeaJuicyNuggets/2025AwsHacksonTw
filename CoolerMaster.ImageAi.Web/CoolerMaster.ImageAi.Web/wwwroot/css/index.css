@@ -112,17 +112,3 @@
     word-wrap: break-word; /* 自動換行 */
     margin-bottom: 10px; /* 與下一條訊息的間距 */
 }
-
-.loading-icon {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1050; /* 确保在最上层 */
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
-    padding: 20px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}

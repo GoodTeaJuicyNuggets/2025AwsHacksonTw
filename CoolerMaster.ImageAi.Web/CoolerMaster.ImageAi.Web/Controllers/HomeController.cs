@@ -54,7 +54,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 var isOk = await SaveImageToS3(taskType, outputImageData);
                 ViewBag.SaveImageToS3Result = isOk;
             }
-            else if(actionType == "CreateImage")
+            else if(actionType == "SendPrompt")
             {
                 string rawBase64Image = await GenBase64Image(taskType, prompt, imageData1, imageData2, imageData3, imageData4, imageData5, outputImageData, imageParam);
                 string mimeType = "image/png";
