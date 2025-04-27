@@ -53,7 +53,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             }
             else if(actionType == "SendPrompt")
             {
-                string rawBase64Image = await GenBase64Image(taskType, prompt, imageData1, imageData2, imageData3, imageData4, imageData5, imageParam);
+                string rawBase64Image = await GenBase64Image(taskType, prompt, imageData1, imageData2, imageData3, imageData4, imageData5, outputImageData, imageParam);
                 string mimeType = "image/png";
                 string base64Image = $"data:{mimeType};base64,{rawBase64Image}";
                 ViewBag.GeneratedImage = base64Image;
@@ -90,7 +90,8 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             return false;
         }
         private async Task<string> GenBase64Image(string taskType, string prompt, 
-            string imageData1, string imageData2, string imageData3, string imageData4, string imageData5, 
+            string imageData1, string imageData2, string imageData3, string imageData4, string imageData5,
+            string outputImageData,
             ImageParameterViewModel imageParam)
         {
             var imgParam = new ImageParameter
@@ -108,41 +109,56 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             if(taskType == "generateVariation")
             {
                 List<string> base64ImagesList = new List<string>();
-                if (!string.IsNullOrEmpty(imageData1))
+                if (!string.IsNullOrEmpty(outputImageData))
                 {
-                    imageData1 = imageData1.Substring(imageData1.IndexOf(',') + 1);
-                    base64ImagesList.Add(imageData1);
+                    outputImageData = outputImageData.Substring(outputImageData.IndexOf(',') + 1);
+                    base64ImagesList.Add(outputImageData);
                 }
-                if (!string.IsNullOrEmpty(imageData2))
+                else
                 {
-                    imageData2 = imageData2.Substring(imageData2.IndexOf(',') + 1);
-                    base64ImagesList.Add(imageData2);
+                    if (!string.IsNullOrEmpty(imageData1))
+                    {
+                        imageData1 = imageData1.Substring(imageData1.IndexOf(',') + 1);
+                        base64ImagesList.Add(imageData1);
+                    }
+                    if (!string.IsNullOrEmpty(imageData2))
+                    {
+                        imageData2 = imageData2.Substring(imageData2.IndexOf(',') + 1);
+                        base64ImagesList.Add(imageData2);
+                    }
+                    if (!string.IsNullOrEmpty(imageData3))
+                    {
+                        imageData3 = imageData3.Substring(imageData3.IndexOf(',') + 1);
+                        base64ImagesList.Add(imageData3);
+                    }
+                    if (!string.IsNullOrEmpty(imageData4))
+                    {
+                        imageData4 = imageData4.Substring(imageData4.IndexOf(',') + 1);
+                        base64ImagesList.Add(imageData4);
+                    }
+                    if (!string.IsNullOrEmpty(imageData5))
+                    {
+                        imageData5 = imageData5.Substring(imageData5.IndexOf(',') + 1);
+                        base64ImagesList.Add(imageData5);
+                    }
                 }
-                if (!string.IsNullOrEmpty(imageData3))
-                {
-                    imageData3 = imageData3.Substring(imageData3.IndexOf(',') + 1);
-                    base64ImagesList.Add(imageData3);
-                }
-                if (!string.IsNullOrEmpty(imageData4))
-                {
-                    imageData4 = imageData4.Substring(imageData4.IndexOf(',') + 1);
-                    base64ImagesList.Add(imageData4);
-                }
-                if (!string.IsNullOrEmpty(imageData5))
-                {
-                    imageData5 = imageData5.Substring(imageData5.IndexOf(',') + 1);
-                    base64ImagesList.Add(imageData5);
-                }
+                
                 return await _awsBedrockClient.ImageVariation(prompt, base64ImagesList, imgParam);
             }
             else
             {
-                if (!string.IsNullOrEmpty(imageData1))
+                var imageData = "";
+
+                if (!string.IsNullOrEmpty(outputImageData))
                 {
-                    imageData1 = imageData1.Substring(imageData1.IndexOf(',') + 1);
+                    imageData = outputImageData.Substring(outputImageData.IndexOf(',') + 1);
+                }
+                else if (!string.IsNullOrEmpty(imageData1))
+                {
+                    imageData = imageData1.Substring(imageData1.IndexOf(',') + 1);
                 }
                     
-                return await _awsBedrockClient.TextToImage(prompt, imageData1, imgParam);
+                return await _awsBedrockClient.TextToImage(prompt, imageData, imgParam);
             }
         }
 
