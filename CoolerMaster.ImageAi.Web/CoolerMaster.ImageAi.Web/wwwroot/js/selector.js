@@ -157,7 +157,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 Category: item.getAttribute('data-category'),
                 Source: item.getAttribute('data-source'),
                 ImageUrl: item.getAttribute('data-imageurl'),
-                Prompt: item.getAttribute('data-prompt')
+                Prompt: item.getAttribute('data-prompt'),
+                ProductDescriptions: item.getAttribute('data-description').split('|')
             });
         });
 

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CoolerMaster.ImageAi.Shared;
 using CoolerMaster.ImageAi.Shared.Interfaces;
@@ -20,14 +21,16 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IAwsS3Client _awsS3Client;
         private readonly IAwsBedrockClient _awsBedrockClient;
+        private readonly IAwsBedrcokAgentClient _awsBedrcokAgentClient;
         private readonly ProductDbContext _dbContext;
 
         public HomeController
-            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient, ProductDbContext dbContext)
+            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient, IAwsBedrcokAgentClient awsBedrcokAgentClient, ProductDbContext dbContext)
         {
             _logger = logger;
             _awsS3Client = awsS3Client;
             _awsBedrockClient = awsBedrockClient;
+            _awsBedrcokAgentClient = awsBedrcokAgentClient;
             _dbContext = dbContext;
         }
 
@@ -150,7 +153,9 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 Category = pi.ProductCategory,
                 Source = pi.ImageSource.ToString(),
                 ImageUrl = pi.ImageUrl,
-                Prompt = string.Join(',', pi.Prompts.Select(x => x.Prompt))
+                Prompt = string.Join(',', pi.Prompts.Select(x => x.Prompt)),
+                ProductDescriptions = pi.Specs.Where(x => x.SpecKey == Consts.SpecKey_Features || x.SpecKey == Consts.SpecKey_Description)
+                                              .Select(x => x.SpecValue).ToArray() 
             }).ToList();
 
             ViewBag.MaxSelection = maxSelection;
@@ -164,6 +169,12 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             Response.Headers["Cache-Control"] = "public, max-age=3600"; // §Ö¨ú
 
             return File(imageBytes, contentType);
+        }
+
+        public async Task<IActionResult> AgentChat(string inputText)
+        {
+            string responseText = await _awsBedrcokAgentClient.InvokeAgentAsync(inputText);
+            return Json(new { responseText });
         }
 
 

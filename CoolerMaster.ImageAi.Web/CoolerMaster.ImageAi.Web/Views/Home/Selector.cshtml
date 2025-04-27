@@ -25,7 +25,7 @@
                         <div class="row custom-grid">
                             @foreach (var product in group)
                             {
-                                <div class="col d-flex justify-content-center product-item" data-id="@product.ImageId" data-name="@product.Name" data-category="@product.Category" data-source="@product.Source" data-imageurl="@product.ImageUrl" data-prompt="@product.Prompt">
+                                <div class="col d-flex justify-content-center product-item" data-id="@product.ImageId" data-name="@product.Name" data-category="@product.Category" data-source="@product.Source" data-imageurl="@product.ImageUrl" data-prompt="@product.Prompt" data-description="@string.Join('|', product.ProductDescriptions)">
                                     <div class="img-card">
                                         <input type="radio" class="product-radio" style="position: absolute; top: 10px; left: 10px; display: none;" />
                                         <img src="@Url.Action("S3ImageToByteArrayBase64", "Home", new { imageUrl = product.ImageUrl })" alt="@product.Name" />
