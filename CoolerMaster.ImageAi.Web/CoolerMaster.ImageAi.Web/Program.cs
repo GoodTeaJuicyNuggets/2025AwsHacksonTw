@@ -1,6 +1,7 @@
 using CoolerMaster.ImageAi.Shared;
 using CoolerMaster.ImageAi.Shared.Configurations;
 using CoolerMaster.ImageAi.Shared.Interfaces;
+using CoolerMaster.ImageAi.Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IAwsS3Client>(_ => new AwsS3Client(awsS3Config));
 builder.Services.AddSingleton<IAwsBedrockClient>(_ => new AwsBedrockClient(awsBedrockConfig));
 builder.Services.AddSingleton<IAwsBedrcokAgentClient>(_ => new AwsBedrcokAgentClient(awsBedrockConfig));
+builder.Services.AddTransient<ISaveService, SaveService>();
 
 // Add ProductDbContext initialization
 builder.Services.AddDbContext<ProductDbContext>();
