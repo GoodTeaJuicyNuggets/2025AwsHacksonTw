@@ -162,6 +162,7 @@
             gap: 10px;
             height: 100%; /* Match the height of the container */
         }
+
     </style>
 </head>
 <body>
@@ -217,6 +218,9 @@
                         <input type="text" class="form-control" id="txtPrompt" name="Prompt" placeholder="請輸入您的指令...">
                         <button type="submit" class="btn btn-outline-success" id="btnSendPrompt" name="actionType" value="SendPrompt">&#8594;</button>
                     </div>
+                    <div class="input-group mt-4 tasktype-input-group">
+                        <input type="text" class="form-control" id="txtPromptSample" name="PromptSample" >
+                    </div>
                     <input type="hidden" name="imageData1" id="hidImageData1" value="" />
                     <input type="hidden" name="imageData2" id="hidImageData2" value="" />
                     <input type="hidden" name="imageData3" id="hidImageData3" value="" />
@@ -238,12 +242,27 @@
         const previewArea = document.getElementById('previewArea');
         const previewImages = previewArea.querySelectorAll('img'); 
 
+        const saveImageToS3Result = '@ViewBag.SaveImageToS3Result';
+        if (saveImageToS3Result) {
+            var msg = saveImageToS3Result ? '存檔成功': '存檔失敗';
+            alert(msg);
+        }
+
+        const taskTypeInputGroup = document.querySelector('.tasktype-input-group');
+            const txtPromptSample = document.getElementById('txtPromptSample');
+
+            if (taskTypeInputGroup && txtPromptSample) {
+                const width = taskTypeInputGroup.offsetWidth + 'px';
+                txtPromptSample.style.width = width;
+            }
         
 
         previewImages.forEach(img => {
             img.addEventListener('click', function() {
                 const base64ImageUrl = this.src;
-                if (base64ImageUrl && base64ImageUrl.startsWith('data:image/')) {
+
+                if (base64ImageUrl && (base64ImageUrl.startsWith('data:image/') || base64ImageUrl.startsWith('data:application/'))) {
+
                     // 創建一個遮罩層，用於背景變暗
                     const overlay = document.createElement('div');
                     overlay.style.position = 'fixed';
@@ -443,7 +462,88 @@
         window.open('/Home/Selector', 'popupWindow', 'width=1280,height=720');
     }
 
+    function fetchImageAsBase64(imageUrl, imgElementId) {
+        const apiUrl = `/Home/S3ImageToByteArrayBase64?imageUrl=${encodeURIComponent(imageUrl)}`; 
+
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.blob(); // 將回應解析為 Blob 物件
+            })
+            .then(blob => {
+                const imgElement = document.getElementById(imgElementId);
+                if (imgElement) {
+                    // 直接將 Blob URL 設定為 img 的 src
+                    imgElement.src = URL.createObjectURL(blob);
+                    imgElement.onload = () => {
+                        URL.revokeObjectURL(imgElement.src); // 釋放 Blob URL
+                        imgElement.classList.add('loaded');
+                    };
+                    imgElement.onerror = () => {
+                        console.error(`載入圖片 ${imageUrl} 失敗。`);
+                    };
+                } else {
+                    console.error(`找不到 ID 為 ${imgElementId} 的 <img> 元素。`);
+                }
+            })
+            .catch(error => {
+                console.error('獲取圖片時發生錯誤:', error);
+            });
+    }
+
+    function fetchImageAsBase64_2(imageUrl, imgElementId) {
+        const apiUrl = `/Home/S3ImageToByteArrayBase64_2?imageUrl=${encodeURIComponent(imageUrl)}`; 
+
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); 
+            })
+            .then(data => {
+                const imgElement = document.getElementById(imgElementId);
+                if (imgElement) {
+                    // 直接將 Blob URL 設定為 img 的 src
+                    imgElement.src = data.base64;
+                    imgElement.onload = () => {
+                        imgElement.classList.add('loaded');
+                    };
+                    imgElement.onerror = () => {
+                        console.error(`載入圖片 ${imageUrl} 失敗。`);
+                    };
+                } else {
+                    console.error(`找不到 ID 為 ${imgElementId} 的 <img> 元素。`);
+                }
+            })
+            .catch(error => {
+                console.error('獲取圖片時發生錯誤:', error);
+            });
+    }
+
     function receiveData(selectedList) {
         console.log('收到選取結果:', selectedList);
+
+        const txtPromptSample = document.getElementById('txtPromptSample');
+        txtPromptSample.value = "";
+
+        const previewImagePrefix = 'previewImage';
+        const previewImageIds = ['previewImage1', 'previewImage2', 'previewImage3', 'previewImage4', 'previewImage5'];
+
+        selectedList.forEach((item, index) => {
+            if (item.ImageUrl && index < previewImageIds.length) {
+                const imageUrl = item.ImageUrl;
+                const imgElementId = previewImageIds[index];
+
+                item.ProductDescriptions.forEach((productDesc, index2) => {
+                    var nexText = (productDesc + "  ");
+                    txtPromptSample.value += nexText;
+                });
+
+                fetchImageAsBase64_2(imageUrl, imgElementId);
+            }
+        });
     }
 </script>

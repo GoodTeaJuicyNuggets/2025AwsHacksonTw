@@ -7,4 +7,10 @@
   <ItemGroup>
     <ProjectReference Include="..\CoolerMaster.ImageAi.Shared\CoolerMaster.ImageAi.Shared.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.6" />
+  </ItemGroup>
 </Project>

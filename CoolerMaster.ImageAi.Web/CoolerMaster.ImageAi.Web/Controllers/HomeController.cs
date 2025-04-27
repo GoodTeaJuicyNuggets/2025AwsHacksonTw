@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Amazon.BedrockAgentRuntime;
 using CoolerMaster.ImageAi.Shared;
 using CoolerMaster.ImageAi.Shared.Interfaces;
 using CoolerMaster.ImageAi.Shared.Models;
 using CoolerMaster.ImageAi.Web.Models;
 using CoolerMaster.ImageAi.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 
 namespace CoolerMaster.ImageAi.Web.Controllers
 {
@@ -50,7 +51,8 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         {
             if (actionType == "SaveImage")
             {
-                await SaveImageToS3(taskType, outputImageData);
+                var isOk = await SaveImageToS3(taskType, outputImageData);
+                ViewBag.SaveImageToS3Result = isOk;
             }
             else if(actionType == "SendPrompt")
             {
@@ -172,6 +174,29 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             Response.Headers["Cache-Control"] = "public, max-age=3600"; // §Ö¨ú
 
             return File(imageBytes, contentType);
+        }
+        public async Task<IActionResult> S3ImageToByteArrayBase64_2(string imageUrl)
+        {
+            byte[] imageBytes = await _awsS3Client.GetImageBytesAsync(imageUrl);
+            imageBytes = ConvertToJpeg_ImageSharp(imageBytes);
+            string contentType = "image/jpg";
+            Response.Headers["Cache-Control"] = "public, max-age=3600";
+
+            string base64String = Convert.ToBase64String(imageBytes);
+            string base64Data = $"data:{contentType};base64,{base64String}";
+
+            return Ok(new { base64 = base64Data }); 
+        }
+
+        public static byte[] ConvertToJpeg_ImageSharp(byte[] originalBytes)
+        {
+            using (var inputStream = new MemoryStream(originalBytes))
+            using (var image = Image.Load(inputStream))
+            using (var outputStream = new MemoryStream())
+            {
+                image.Save(outputStream, new JpegEncoder());
+                return outputStream.ToArray();
+            }
         }
 
         public async Task<IActionResult> AgentChat(string inputText)
