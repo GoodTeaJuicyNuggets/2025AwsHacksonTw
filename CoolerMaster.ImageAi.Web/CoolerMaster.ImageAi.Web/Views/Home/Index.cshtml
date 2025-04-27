@@ -453,7 +453,14 @@
         const outputImage = document.getElementById('outputImage');
         const hidOutputImageData = document.getElementById('hidOutputImageData');
 
-        if (outputImage.src && outputImage.src !== window.location.href) {
+      
+
+        if(outputImage.src.indexOf("/pic/cooler.png") >= 0)
+        {
+            console.log('XXX')
+            hidOutputImageData.value = ""; 
+        }
+        else if (outputImage.src && outputImage.src !== window.location.href) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = outputImage.naturalWidth;

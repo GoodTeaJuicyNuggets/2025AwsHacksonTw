@@ -63,6 +63,10 @@
     .mt-3 {
         margin-top: 20px !important;
     }
+
+    .hint{
+        color: white !important;
+    }
 </style>
 
 @using (Html.BeginForm())
@@ -94,14 +98,14 @@
                 <label for="CfgScale" class="col-sm-4 col-form-label">提示彈性 (cfgScale)</label>
                 <div class="col-sm-8">
                     @Html.TextBox("CfgScale", "7.5", new { @class = "form-control", id = "CfgScale", placeholder = "建議值為 7.0-8.0" })
-                    <small class="form-text text-muted">建議值為 7.0-8.0</small>
+                    <small class="form-text text-muted hint" style="color: white">建議值為 7.0-8.0</small>
                 </div>
             </div>
             <div class="mb-3 row">
                 <label for="Seed" class="col-sm-4 col-form-label">變化性參數 (Seed)</label>
                 <div class="col-sm-8">
                     @Html.TextBox("Seed", "0", new { @class = "form-control", id = "Seed", placeholder = "預設為 0" })
-                    <small class="form-text text-muted">預設為 0</small>
+                    <small class="form-text text-muted hint">預設為 0</small>
                 </div>
             </div>
         </div>
