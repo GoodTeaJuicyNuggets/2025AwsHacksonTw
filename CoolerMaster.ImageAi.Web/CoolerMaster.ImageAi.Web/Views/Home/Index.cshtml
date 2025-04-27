@@ -237,6 +237,14 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const generatedImage = "@ViewBag.GeneratedImage";
+        const outputImage = document.getElementById('outputImage');
+        if (outputImage) {
+            if (!generatedImage) {
+                outputImage.src = "/pic/cooler.png";
+            }
+        }
+
         const uploadDraftButton = document.getElementById('btnUploadDraft');
         const fileInput = document.getElementById('fileInput');
         const previewArea = document.getElementById('previewArea');
