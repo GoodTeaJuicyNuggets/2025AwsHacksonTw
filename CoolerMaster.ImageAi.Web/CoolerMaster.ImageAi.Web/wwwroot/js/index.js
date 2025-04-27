@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         // 清空输入框
-        txtPrompt.value = '';
+        //txtPrompt.value = '';
 
         // 为所有生成链接绑定点击事件
         const generateLinks = document.querySelectorAll('.generate-link');
@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnCreateImage.click(); // 触发隐藏的提交按钮
             });
         });
+
+
     }
 
     // 按下 Enter 键时触发
