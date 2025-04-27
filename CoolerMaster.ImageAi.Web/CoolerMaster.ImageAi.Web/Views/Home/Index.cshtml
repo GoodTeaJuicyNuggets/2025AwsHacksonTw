@@ -162,12 +162,17 @@
             gap: 10px;
             height: 100%; /* Match the height of the container */
         }
-
+        .title {
+            font-size: 45px;
+        }
+        .sub-title{
+            font-size: 22px;
+        }
     </style>
 </head>
 <body>
     <div class="container py-5">
-        <h2 class="text-center mb-4">智競工坊 CoolerMaster Imager</h2>
+        <h2 class="text-center mb-4 title">智競工坊 CoolerMaster Imager</h2>
         @using (Html.BeginForm("CoolerMasterImager", "Home", FormMethod.Post, new { id = "CoolerMasterAiAgentForm" }))
         {
             <div class="row g-4 equal-height">
@@ -177,7 +182,7 @@
                 <div class="col-md-8 equal-height-child">
                     <div class="d-flex input-output-container" style="flex-grow: 1;">
                         <div class="input-area">
-                            <h3 class="mb-2">輸入 (Input)</h3>
+                            <h3 class="mb-2 sub-title">輸入 (Input)</h3>
                             <div id="uploadArea" class="border border-primary rounded d-flex align-items-center justify-content-center p-3" >
                                 Click or drag an image here to upload
                             </div>
@@ -196,7 +201,7 @@
                             </div>
                         </div>
                         <div class="output-area">
-                            <h3 class="mb-2">輸出 (Output)</h3>
+                            <h3 class="mb-2 sub-title">輸出 (Output)</h3>
                             <div id="outputArea" class="border border-secondary rounded d-flex align-items-center justify-content-center p-3" style="flex-grow: 1;">
                                 <img id="outputImage" alt="Image Output" class="img-fluid"
                                      src="@ViewBag.GeneratedImage" />
