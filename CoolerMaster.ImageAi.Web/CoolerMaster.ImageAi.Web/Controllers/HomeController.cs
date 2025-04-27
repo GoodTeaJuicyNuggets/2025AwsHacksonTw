@@ -151,7 +151,9 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 Category = pi.ProductCategory,
                 Source = pi.ImageSource.ToString(),
                 ImageUrl = pi.ImageUrl,
-                Prompt = string.Join(',', pi.Prompts.Select(x => x.Prompt))
+                Prompt = string.Join(',', pi.Prompts.Select(x => x.Prompt)),
+                ProductDescriptions = pi.Specs.Where(x => x.SpecKey == Consts.SpecKey_Features || x.SpecKey == Consts.SpecKey_Description)
+                                              .Select(x => x.SpecValue).ToArray() 
             }).ToList();
 
             ViewBag.MaxSelection = maxSelection;

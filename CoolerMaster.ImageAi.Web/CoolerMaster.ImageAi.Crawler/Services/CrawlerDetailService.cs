@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CoolerMaster.ImageAi.Shared;
 
 namespace CoolerMaster.ImageAi.Crawler.Services
 {
@@ -54,7 +55,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
                     var infoDesc = driver.FindElement(By.CssSelector("div.info__description"));
                     specs.Add(new ImageSpec
                     {
-                        SpecKey = "info_description",
+                        SpecKey = Consts.SpecKey_Description,
                         SpecValue = infoDesc.Text.Trim()
                     });
                 }
@@ -69,7 +70,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
                             var text = paragraph.Text.Trim();
                             specs.Add(new ImageSpec
                             {
-                                SpecKey = "info_description",
+                                SpecKey = Consts.SpecKey_Description,
                                 SpecValue = text
                             });
                         }
@@ -87,7 +88,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
 
                     specs.Add(new ImageSpec
                     {
-                        SpecKey = "product_features",
+                        SpecKey = Consts.SpecKey_Features,
                         SpecValue = $"{title}: {content}"
                     });
                 }
@@ -102,7 +103,7 @@ namespace CoolerMaster.ImageAi.Crawler.Services
 
                     specs.Add(new ImageSpec
                     {
-                        SpecKey = "product_features",
+                        SpecKey = Consts.SpecKey_Features,
                         SpecValue = $"{title}: {content}"
                     });
                 }
