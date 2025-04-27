@@ -8,7 +8,6 @@ namespace CoolerMaster.ImageAi.Shared.Interfaces
 {
     public interface IAwsBedrcokAgentClient
     {
-        Task<string> GetSessionAsync(string sessionId = "");
-        Task<string> InvokeAgentAsync(string sessionId, string inputText);
+        Task<string> InvokeAgentAsync(string inputText);
     }
 }
