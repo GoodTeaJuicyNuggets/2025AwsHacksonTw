@@ -178,9 +178,14 @@
                     <div class="d-flex input-output-container" style="flex-grow: 1;">
                         <div class="input-area">
                             <h3 class="mb-2">輸入 (Input)</h3>
-                            <div id="uploadArea" class="border border-primary rounded d-flex align-items-center justify-content-center p-3" >
-                                Click or drag an image here to upload
+                            <div id="chatWindow" class="chat-window border border-primary rounded d-flex flex-column p-3">
+                                <div id="chatMessages" class="chat-messages flex-grow-1 overflow-auto">
+                                    <div class="message bot-message">
+                                        歡迎使用，請輸入生成圖描述，或直接進行選圖
+                                    </div>
+                                </div>
                             </div>
+
                             <div id="previewArea" class="border border-secondary rounded p-3" style="flex-grow: 1; display: flex; flex-wrap: wrap; align-items: flex-start;">
                                 <img id="previewImage1" alt="Image Preview 1" class="preview-image" />
                                 <img id="previewImage2" alt="Image Preview 2" class="preview-image" />
@@ -216,7 +221,8 @@
                             <option value="draftInpaint">草稿填滿</option>
                         </select>
                         <input type="text" class="form-control" id="txtPrompt" name="Prompt" placeholder="請輸入您的指令...">
-                        <button type="submit" class="btn btn-outline-success" id="btnSendPrompt" name="actionType" value="SendPrompt">&#8594;</button>
+                        <button type="button" class="btn btn-outline-success" id="btnSendPrompt">&#8594;</button>
+                        <button type="submit" class="btn btn-outline-success d-none" id="btnCreateImage" name="actionType" value="CreateImage"></button>
                     </div>
                     <div class="input-group mt-4 tasktype-input-group">
                         <input type="text" class="form-control" id="txtPromptSample" name="PromptSample" >
