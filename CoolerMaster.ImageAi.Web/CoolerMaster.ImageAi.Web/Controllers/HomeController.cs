@@ -10,6 +10,7 @@ using CoolerMaster.ImageAi.Shared;
 using CoolerMaster.ImageAi.Shared.Interfaces;
 using CoolerMaster.ImageAi.Shared.Models;
 using CoolerMaster.ImageAi.Web.Models;
+using CoolerMaster.ImageAi.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -23,15 +24,17 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         private readonly IAwsBedrockClient _awsBedrockClient;
         private readonly IAwsBedrcokAgentClient _awsBedrcokAgentClient;
         private readonly ProductDbContext _dbContext;
+        private readonly ISaveService _saveService;
 
         public HomeController
-            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient, IAwsBedrcokAgentClient awsBedrcokAgentClient, ProductDbContext dbContext)
+            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient, IAwsBedrcokAgentClient awsBedrcokAgentClient, ProductDbContext dbContext, ISaveService save)
         {
             _logger = logger;
             _awsS3Client = awsS3Client;
             _awsBedrockClient = awsBedrockClient;
             _awsBedrcokAgentClient = awsBedrcokAgentClient;
             _dbContext = dbContext;
+            _saveService = save;
         }
 
         public IActionResult Index()
