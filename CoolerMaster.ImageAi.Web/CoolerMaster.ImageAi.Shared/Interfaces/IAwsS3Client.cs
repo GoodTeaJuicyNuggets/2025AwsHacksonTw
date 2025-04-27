@@ -2,6 +2,7 @@
 {
     public interface IAwsS3Client
     {
-        Task<bool> UploadImageAsync(Stream imageStream, string folderName, string fileName, string contentType);
+        Task<string> UploadImageAsync(Stream imageStream, string folderName, string fileName, string contentType);
+        Task<byte[]> GetImageBytesAsync(string imageUrl);
     }
 }

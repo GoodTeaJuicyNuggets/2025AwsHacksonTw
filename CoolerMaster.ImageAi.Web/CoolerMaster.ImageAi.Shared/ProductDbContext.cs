@@ -20,9 +20,9 @@ namespace CoolerMaster.ImageAi.Shared
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var dbPath = Path.Combine(AppContext.BaseDirectory, "sqlite", "products.db");
-            Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            // 使用環境變數或 appsettings.json 中的 ConnectionStrings 來設定連線字串
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__ProductDb") ?? throw new InvalidOperationException("Connection string not found.");
+            optionsBuilder.UseSqlServer(connectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

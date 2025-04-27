@@ -2,12 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using CoolerMaster.ImageAi.Shared;
 using CoolerMaster.ImageAi.Shared.Interfaces;
 using CoolerMaster.ImageAi.Shared.Models;
 using CoolerMaster.ImageAi.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CoolerMaster.ImageAi.Web.Controllers
@@ -17,12 +20,15 @@ namespace CoolerMaster.ImageAi.Web.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IAwsS3Client _awsS3Client;
         private readonly IAwsBedrockClient _awsBedrockClient;
+        private readonly ProductDbContext _dbContext;
+
         public HomeController
-            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient)
+            (ILogger<HomeController> logger, IAwsS3Client awsS3Client, IAwsBedrockClient awsBedrockClient, ProductDbContext dbContext)
         {
             _logger = logger;
             _awsS3Client = awsS3Client;
             _awsBedrockClient = awsBedrockClient;
+            _dbContext = dbContext;
         }
 
         public IActionResult Index()
@@ -48,6 +54,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 ViewBag.GeneratedImage = base64Image;
             }
 
+            ViewBag.SelectedTaskType = taskType;
             return View("Index");
         }
         private async Task<bool> SaveImageToS3(string taskType, string imageData)
@@ -72,7 +79,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                     }
                 }
 
-                return await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? "");
+                return !string.IsNullOrEmpty(await _awsS3Client.UploadImageAsync(imageStream, folderName, fileName, contentType ?? ""));
             }
 
             return false;
@@ -92,6 +99,7 @@ namespace CoolerMaster.ImageAi.Web.Controllers
                 NumberOfImages = imageParam.NumberOfImages
             };
 
+            
             if(taskType == "generateVariation")
             {
                 List<string> base64ImagesList = new List<string>();
@@ -133,22 +141,29 @@ namespace CoolerMaster.ImageAi.Web.Controllers
             }
         }
 
-
-
-
         public IActionResult Selector(int maxSelection = 1)
         {
-            var products = new List<object>
+            var productImages = _dbContext.ProductImages.Select(pi => new SelectorViewModel()
             {
-                new { Id = 1, Name = "官網商品 1", Category = "pc-cases", Source = "official", ImageUrl = "https://a.storyblok.com/f/281110/960x960/39f09cd23c/elite-301-white-gallery-02.png/m/960x0/smart" },
-                new { Id = 2, Name = "官網商品 2", Category = "pc-cases", Source = "official", ImageUrl = "https://a.storyblok.com/f/281110/960x960/39f09cd23c/elite-301-white-gallery-02.png/m/960x0/smart" },
-                new { Id = 3, Name = "上傳商品 1", Category = "power-supply", Source = "uploaded", ImageUrl = "https://a.storyblok.com/f/281110/960x960/39f09cd23c/elite-301-white-gallery-02.png/m/960x0/smart" },
-                new { Id = 4, Name = "AI 草稿 1", Category = "cooler", Source = "ai-draft", ImageUrl = "https://a.storyblok.com/f/281110/960x960/39f09cd23c/elite-301-white-gallery-02.png/m/960x0/smart" },
-                new { Id = 5, Name = "AI 成品 1", Category = "pc-cases", Source = "ai-final", ImageUrl = "https://a.storyblok.com/f/281110/960x960/39f09cd23c/elite-301-white-gallery-02.png/m/960x0/smart" }
-            };
+                ImageId = pi.ImageId,
+                Name = pi.Product.Name ?? pi.ImageId.ToString(),
+                Category = pi.ProductCategory,
+                Source = pi.ImageSource.ToString(),
+                ImageUrl = pi.ImageUrl,
+                Prompt = string.Join(',', pi.Prompts.Select(x => x.Prompt))
+            }).ToList();
 
             ViewBag.MaxSelection = maxSelection;
-            return View(products);
+            return View(productImages);
+        }
+
+        public async Task<IActionResult> S3ImageToByteArrayBase64(string imageUrl)
+        {
+            byte[] imageBytes = await _awsS3Client.GetImageBytesAsync(imageUrl);
+            string contentType = Utils.GetContentTypeFromExtension(imageUrl);
+            Response.Headers["Cache-Control"] = "public, max-age=3600"; // 快取
+
+            return File(imageBytes, contentType);
         }
 
 

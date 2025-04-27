@@ -39,6 +39,15 @@
             max-height: 100%; /* 限制圖片的最大高度為容器的高度，避免垂直方向超出 */
             width: 30px;
             height: 30px;
+            opacity: 0;
+        }
+
+        .preview-image.loaded {
+            opacity: 1;
+        }
+
+        .preview-image:hover {
+            cursor: pointer; 
         }
         /* 全局樣式 */
         body {
@@ -176,7 +185,7 @@
                             <div class="d-flex input-buttons">
                                 <input type="file" id="fileInput" multiple style="display: none;" accept="image/*">
                                 <button class="btn btn-secondary me-2" id="btnUploadDraft">上傳草稿</button>
-                                <button class="btn btn-info" id="btnGallery">圖庫</button>
+                                <button class="btn btn-info" id="btnGallery" onclick="openPopupWindow()">圖庫</button>
                             </div>
                         </div>
                         <div class="output-area">
@@ -223,38 +232,87 @@
         const previewArea = document.getElementById('previewArea');
         const previewImages = previewArea.querySelectorAll('img'); 
 
+        
+
+        previewImages.forEach(img => {
+            img.addEventListener('click', function() {
+                const base64ImageUrl = this.src;
+                if (base64ImageUrl && base64ImageUrl.startsWith('data:image/')) {
+                    // 創建一個遮罩層，用於背景變暗
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // 半透明黑色
+                    overlay.style.zIndex = '1000'; // 確保在最上層
+                    document.body.appendChild(overlay);
+
+                    // 創建一個用於顯示大圖的容器
+                    const modal = document.createElement('div');
+                    modal.style.position = 'fixed';
+                    modal.style.top = '50%';
+                    modal.style.left = '50%';
+                    modal.style.transform = 'translate(-50%, -50%)';
+                    modal.style.backgroundColor = '#fff';
+                    modal.style.padding = '15px';
+                    modal.style.borderRadius = '5px';
+                    modal.style.zIndex = '1001'; // 確保在遮罩層之上
+                    modal.style.display = 'flex';
+                    modal.style.flexDirection = 'column';
+                    modal.style.alignItems = 'center';
+                    document.body.appendChild(modal);
+
+                    // 創建用於顯示圖片的 img 標籤
+                    const largeImage = document.createElement('img');
+                    largeImage.src = base64ImageUrl;
+                    largeImage.style.maxWidth = '90vw'; // 限制最大寬度
+                    largeImage.style.maxHeight = '90vh'; // 限制最大高度
+                    modal.appendChild(largeImage);
+
+                    // 創建一個關閉按鈕
+                    const closeButton = document.createElement('button');
+                    closeButton.textContent = '關閉';
+                    closeButton.style.marginTop = '10px';
+                    closeButton.addEventListener('click', function() {
+                        document.body.removeChild(modal);
+                        document.body.removeChild(overlay);
+                    });
+                    modal.appendChild(closeButton);
+
+                } else {
+                    console.error('圖片 URL 格式不正確或不是 Base64！');
+                }
+            });
+        });
+
         uploadDraftButton.addEventListener('click', function() {
-                console.log('uploadDraftButton')
-                    event.preventDefault();
+            event.preventDefault();
             fileInput.click(); 
         });
 
-        // 監聽檔案輸入框的 change 事件 (當選擇檔案後觸發)
         fileInput.addEventListener('change', function() {
-            const files = this.files; // 獲取選取的所有檔案
-
-            // 限制上傳的圖片數量為 5 張
+            const files = this.files;
             const numberOfFiles = Math.min(files.length, previewImages.length);
 
-            // 遍歷選取的檔案並預覽
             for (let i = 0; i < numberOfFiles; i++) {
                 const file = files[i];
                 const reader = new FileReader();
 
                 reader.onload = function(e) {
-                    // 將讀取到的圖片資料 (Base64) 設定到對應的 <img> 標籤的 src 屬性
                     previewImages[i].src = e.target.result;
+                    previewImages[i].classList.add('loaded'); 
                 }
 
-                reader.readAsDataURL(file); // 將檔案讀取為 Base64 編碼的 Data URL
+                reader.readAsDataURL(file);
             }
 
-            // 如果上傳的圖片少於 5 張，則清空剩餘的預覽框
             for (let i = numberOfFiles; i < previewImages.length; i++) {
-                previewImages[i].src = ''; // 清空 src 屬性，移除預覽
+                previewImages[i].src = '';
+                previewImages[i].classList.remove('loaded'); // 移除 loaded class 使圖片不可見
             }
 
-            // 清空檔案輸入框的值，以便下次可以再次選擇相同的檔案
             fileInput.value = '';
         });
 
@@ -266,6 +324,10 @@
         const previewImage5 = document.getElementById('previewImage5');
         const previewImageList = [previewImage1, previewImage2, previewImage3, previewImage4, previewImage5];
 
+        const selectedValueFromBackend = '@ViewBag.SelectedTaskType';
+        if (selectedValueFromBackend) {
+            ddlTasktype.value = selectedValueFromBackend;
+        }
 
         if (ddlTasktype) {
             if (previewImage1) {
@@ -278,7 +340,12 @@
             }
 
             ddlTasktype.addEventListener('change', function() {
-                const selectedValue = this.value; // 取得選取的值
+                const selectedValue = this.value; 
+
+                previewImages.forEach(img => {
+                    img.src = '';
+                    img.classList.remove('loaded'); 
+                });
 
                 if (selectedValue === 'textToImage') {
                     if (previewImage1) {
@@ -366,4 +433,11 @@
         }
     });
 
+    function openPopupWindow() {
+        window.open('/Home/Selector', 'popupWindow', 'width=1280,height=720');
+    }
+
+    function receiveData(selectedList) {
+        console.log('收到選取結果:', selectedList);
+    }
 </script>

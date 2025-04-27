@@ -17,6 +17,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IAwsS3Client>(_ => new AwsS3Client(awsS3Config));
 builder.Services.AddSingleton<IAwsBedrockClient>(_ => new AwsBedrockClient(awsBedrockConfig));
 
+// Add ProductDbContext initialization
+builder.Services.AddDbContext<ProductDbContext>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
