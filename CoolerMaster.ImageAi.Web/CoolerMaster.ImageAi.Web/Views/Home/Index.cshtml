@@ -10,13 +10,15 @@
     <link rel="stylesheet" href="~/css/index.css">
     <style>
         #uploadArea {
-            border: 1px solid #007bff; /* 保持原有的邊框樣式 */
-            border-radius: 0.25rem; /* 保持原有的圓角樣式 */
+            border: 2px dashed #6a11cb; /* 紫色虛線邊框 */
+            border-radius: 10px;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0.75rem;
             flex-grow: 8; /* 設定 uploadArea 的 flex-grow 為 2 */
+            background-color: #2a2a2a; /* 深灰色背景 */
         }
 
         #previewArea {
@@ -37,6 +39,113 @@
             max-height: 100%; /* 限制圖片的最大高度為容器的高度，避免垂直方向超出 */
             width: 30px;
             height: 30px;
+        }
+        /* 全局樣式 */
+        body {
+            font-family: 'Roboto', 'Open Sans', sans-serif;
+            background-color: #1a1a1a; /* 深色背景 */
+            color: #ffffff; /* 白色文字 */
+        }
+
+        h2, h3 {
+            color: #e3e3e3; /* 淡灰色標題 */
+            font-weight: bold;
+        }
+
+        /* 按鈕樣式 */
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+            button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+
+        #btnUploadDraft {
+            background: linear-gradient(45deg, #6a11cb, #2575fc); /* 紫色到藍色漸層 */
+            color: #fff;
+        }
+
+        #btnGallery {
+            background: linear-gradient(45deg, #ff512f, #dd2476); /* 橘色到粉色漸層 */
+            color: #fff;
+        }
+
+        #btnSaveImage {
+            background: linear-gradient(45deg, #00c6ff, #0072ff); /* 淺藍到深藍漸層 */
+            color: #fff;
+        }
+
+        /* 區塊樣式 */
+        #outputArea {
+            background-color: #2a2a2a; /* 深灰色背景 */
+            border: 2px dashed #6a11cb; /* 紫色虛線邊框 */
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1; /* Allow these areas to stretch and fill available space */
+        }
+
+        #uploadArea:hover, #outputArea:hover {
+            background-color: #333333; /* 更深的灰色 */
+            border-color: #ff512f; /* 橘色邊框 */
+        }
+
+        .preview-image:hover {
+            border-color: #6a11cb; /* 紫色邊框 */
+            transform: scale(1.1);
+        }
+
+        /* 下拉選單樣式 */
+        .tasktype-dropdown {
+            background-color: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+            .tasktype-dropdown:focus {
+                border-color: #6a11cb; /* 紫色邊框 */
+                box-shadow: 0 0 5px #6a11cb;
+            }
+
+        /* 輸入框樣式 */
+        #txtPrompt {
+            background-color: #2a2a2a;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+            #txtPrompt:focus {
+                border-color: #6a11cb;
+                box-shadow: 0 0 5px #6a11cb;
+            }
+
+        /* 表單容器 */
+        .input-output-container {         
+            gap: 20px;
+            display: flex;
+            gap: 20px;
+            height: 100%;  /*Ensure the container takes full heig*/
+        }
+
+        .input-area, .output-area {
+            flex: 1; /* Make both areas take equal space */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%; /* Match the height of the container */
         }
     </style>
 </head>
